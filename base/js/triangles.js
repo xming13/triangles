@@ -46,6 +46,8 @@
         baseColor: 'blue',
         paintColor: '#fff',
 
+        gradient: { topLeft: '#f00', bottomRight: '#0f0' },
+
         random: false,
         randomColors: {
             '#FFA666': 0.1,
@@ -76,6 +78,25 @@
 
                 if (settings.useBorderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
                     paintColor = settings.useBorderColor;
+                }
+                else if (settings.gradient) {
+
+                    if (settings.gradient.topLeft) {
+                        var rgbTopLeft = hexToRgb(settings.gradient.topLeft);
+                        var rgbBottomRight = hexToRgb(settings.gradient.bottomRight);
+
+                        var topLeftColor = rgbToHsv(rgbTopLeft[0], rgbTopLeft[1], rgbTopLeft[2]);
+                        var botRightColor = rgbToHsv(rgbBottomRight[0], rgbBottomRight[1], rgbBottomRight[2]);
+
+                        var ratio = (i + j) / (settings.rows + settings.cols - 2);
+
+                        var colorH = ratio * topLeftColor[0] + (1 - ratio) * botRightColor[0];
+                        var colorS = ratio * topLeftColor[1] + (1 - ratio) * botRightColor[1];
+                        var colorV = ratio * topLeftColor[2] + (1 - ratio) * botRightColor[2];
+
+                        var colorRgb = hsvToRgb(colorH, colorS, colorV);
+                        paintColor = 'rgb(' + Math.round(colorRgb[0]) + ',' + Math.round(colorRgb[1]) + ',' + Math.round(colorRgb[2]) + ')';
+                    }
                 }
                 else if (settings.random) {
                     var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
@@ -400,7 +421,96 @@
         })(0, 0);
     };
 
-     //
+    /**
+     * Converts a hex color value to HSV
+     * returns r, g and b in the set [0, 255].
+     * @param {String} hex The hex color value, e.g. #fff, #aaccff
+     * @returns {Array} The RGB representation
+     */
+    function hexToRgb(hex) {
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex
+            // remove non-hex chars (e.g. leading '#')
+            .replace(/[^0-9A-F]/gi, '')
+            // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+            .replace(shorthandRegex, function(m, r, g, b) {
+                return r + r + g + g + b + b;
+            });
+
+        var bigint = parseInt(hex, 16);
+        var r = (bigint >> 16) & 255;
+        var g = (bigint >> 8) & 255;
+        var b = bigint & 255;
+
+        return [r, g, b];
+    }
+
+    /**
+     * Converts an RGB color value to HSV. Conversion formula
+     * adapted from http://en.wikipedia.org/wiki/HSV_color_space.
+     * Assumes r, g, and b are contained in the set [0, 255] and
+     * returns h, s, and v in the set [0, 1].
+     *
+     * @param   Number  r       The red color value
+     * @param   Number  g       The green color value
+     * @param   Number  b       The blue color value
+     * @return  Array           The HSV representation
+     */
+    function rgbToHsv(r, g, b){
+        r = r/255, g = g/255, b = b/255;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, v = max;
+
+        var d = max - min;
+        s = max == 0 ? 0 : d / max;
+
+        if(max == min){
+            h = 0; // achromatic
+        }else{
+            switch(max){
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        return [h, s, v];
+    }
+
+    /**
+     * Converts an HSV color value to RGB. Conversion formula
+     * adapted from http://en.wikipedia.org/wiki/HSV_color_space.
+     * Assumes h, s, and v are contained in the set [0, 1] and
+     * returns r, g, and b in the set [0, 255].
+     *
+     * @param   Number  h       The hue
+     * @param   Number  s       The saturation
+     * @param   Number  v       The value
+     * @return  Array           The RGB representation
+     */
+    function hsvToRgb(h, s, v){
+        var r, g, b;
+
+        var i = Math.floor(h * 6);
+        var f = h * 6 - i;
+        var p = v * (1 - s);
+        var q = v * (1 - f * s);
+        var t = v * (1 - (1 - f) * s);
+
+        switch(i % 6){
+            case 0: r = v, g = t, b = p; break;
+            case 1: r = q, g = v, b = p; break;
+            case 2: r = p, g = v, b = t; break;
+            case 3: r = p, g = q, b = v; break;
+            case 4: r = t, g = p, b = v; break;
+            case 5: r = v, g = p, b = q; break;
+        }
+
+        return [r * 255, g * 255, b * 255];
+    }
+
+    //
     // Public APIs
     //
 
