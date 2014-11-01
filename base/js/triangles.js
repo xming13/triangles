@@ -32,25 +32,11 @@
     var _randomColorsArray = []; // sorted array for random colors and chance of selecting
     var divStyle;
 
-    var w = window,
-        d = document,
-        e = d.documentElement,
-        g = d.getElementsByTagName('body')[0],
-        x = w.innerWidth,
-        y = w.innerHeight;
-
-//    x = w.innerWidth || e.clientWidth || g.clientWidth,
-//    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-
-    console.log(d);
-    console.log(g);
-    console.log(x + ',' + y);
-
     // Default settings
     var defaults = {
         cssSelector: 'div.triangles',
-        width: x,
-        height: y,
+        width: 500,
+        height: 500,
         cols: 20,
         rows: 20,
 
@@ -291,6 +277,9 @@
             // Destroy any existing initializations
             triangles.destroy();
 
+            defaults.width = window.innerWidth;
+            defaults.height = window.innerHeight;
+
             // Selectors and variables
             settings = extend(defaults, options || {}); // Merge user options with defaults
 
@@ -303,12 +292,9 @@
 
         if (settings.updateOnResize) {
             window.addEventListener('resize', function(event){
-                x = w.innerWidth,
-                y = w.innerHeight;
-                defaults.width = x;
-                defaults.height = y;
+                defaults.width = window.innerWidth;
+                defaults.height = window.innerHeight;
 
-                console.log(x + ': ' + y);
                 generate();
             });
         }
