@@ -30,14 +30,31 @@
     var settings; // Plugin settings
     var matrix = []; // matrix to hold the triangles divs
     var _randomColorsArray = []; // sorted array for random colors and chance of selecting
+    var divStyle;
+
+    var w = window,
+        d = document,
+        e = d.documentElement,
+        g = d.getElementsByTagName('body')[0],
+        x = w.innerWidth,
+        y = w.innerHeight;
+
+//    x = w.innerWidth || e.clientWidth || g.clientWidth,
+//    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+
+    console.log(d);
+    console.log(g);
+    console.log(x + ',' + y);
 
     // Default settings
     var defaults = {
         cssSelector: 'div.triangles',
-        width: 1000,
-        height: 500,
-        cols: 40,
+        width: x,
+        height: y,
+        cols: 20,
         rows: 20,
+
+        updateOnResize: true,
 
         borderColor: '#aaa',
         baseColor: '#ccc',
@@ -108,30 +125,56 @@
     /*
      Main methods for appending the triangle divs
      */
-    function createTriangles() {
+    function appendTriangles() {
         for (var col = 0; col < settings.cols; col++) {
-            createColumn(matrix[col]);
+            appendColumn(matrix[col]);
         }
 
-        var triangleWidth = Math.floor(settings.width / settings.cols);
-        var triangleHeight = Math.floor(settings.height / settings.rows);
-        var columnWidth = Math.min(triangleWidth, triangleHeight);
-        var triangleBorderWidth = Math.floor(Math.sqrt(columnWidth / 2 * columnWidth / 2 * 2));
-        var marginLeft = triangleBorderWidth / 2;
-        var marginTop = -marginLeft;
+        var squareWidth = settings.width / settings.cols;
+        var squareHeight = settings.height / settings.rows;
 
-        $('body').append('<style>' +
-            settings.cssSelector + ' { margin-left: ' + marginLeft + 'px; margin-top: ' + marginTop + 'px;} ' +
-            '.triangle { border-width: ' + triangleBorderWidth + 'px; margin-top: ' + marginTop + 'px; } ' +
-            '.col { width: ' + columnWidth + 'px; }' +
-            '</style>')
+        /*
+         * _______ <--- triangleLength
+         * \    /|
+         *  \  /<------ borderWidth
+         *   \/  |
+         *    \  |
+         *     \<------ diagonalLength
+         *      \|
+         */
+        // length of the horizontal/vertical side of the triangle
+        // here we take the minimum of the two
+        var triangleLength = Math.min(squareWidth, squareHeight);
+
+        // the length of the diagonal side of the triangle
+        var diagonalLength = triangleLength  * Math.sqrt(2);
+
+        var borderWidth = Math.floor(diagonalLength / 2);
+
+        // width of each column which is same as the triangle length
+        // -1 here to be safe as sometimes the scroll bar's width will cause the column to go to next row
+        var columnWidth = Math.floor(triangleLength) - 1;
+
+        var triangleMarginTop = Math.floor(triangleLength - diagonalLength);
+
+        var divMarginTop = Math.floor(-triangleLength / Math.sqrt(2) - triangleMarginTop);
+        var divMarginLeft = Math.floor(triangleLength - triangleLength / Math.sqrt(2));
+
+        if (!divStyle) {
+            divStyle = document.createElement('style');
+            document.getElementsByTagName('body')[0].appendChild(divStyle);
+        }
+
+        divStyle.innerHTML = settings.cssSelector + ' {  margin-top: ' + divMarginTop + 'px; margin-left: ' + divMarginLeft + 'px} ' +
+            settings.cssSelector + ' .triangle { border-width: ' + borderWidth + 'px; margin-top: ' + triangleMarginTop + 'px; } ' +
+            settings.cssSelector + ' .col { width: ' + columnWidth + 'px; }';
     };
 
     /**
      * Append triangle divs to the column supplied by the colMatrix
      * @param {Array} colMatrix array contains the dom divs for each row in a column
      */
-    function createColumn(colMatrix) {
+    function appendColumn(colMatrix) {
         var col = document.createElement('div');
         addClass(col, 'col');
 
@@ -221,7 +264,17 @@
      * @public
      */
     triangles.destroy = function() {
+
+        if (settings) {
+            var triangles = document.querySelector(settings.cssSelector);
+            triangles.innerHTML = '';
+        }
+
         matrix = [];
+
+        _randomColorsArray = [];
+
+        settings = defaults;
     };
 
     /**
@@ -234,15 +287,31 @@
         // feature test
         if (!supports) return;
 
-        // Destroy any existing initializations
-        triangles.destroy();
+        var generate = function() {
+            // Destroy any existing initializations
+            triangles.destroy();
 
-        // Selectors and variables
-        settings = extend(defaults, options || {}); // Merge user options with defaults
+            // Selectors and variables
+            settings = extend(defaults, options || {}); // Merge user options with defaults
 
-        initRandomColorsArray();
-        initMatrix();
-        createTriangles();
+            initRandomColorsArray();
+            initMatrix();
+            appendTriangles();
+        };
+
+        generate();
+
+        if (settings.updateOnResize) {
+            window.addEventListener('resize', function(event){
+                x = w.innerWidth,
+                y = w.innerHeight;
+                defaults.width = x;
+                defaults.height = y;
+
+                console.log(x + ': ' + y);
+                generate();
+            });
+        }
     };
 
     //
