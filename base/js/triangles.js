@@ -42,11 +42,11 @@
 
         updateOnResize: true,
 
-        borderColor: '#aaa',
-        baseColor: '#ccc',
+        useBorderColor: '',
+        baseColor: 'blue',
         paintColor: '#fff',
 
-        random: true,
+        random: false,
         randomColors: {
             '#FFA666': 0.1,
             '#72A4AF': 0.3,
@@ -71,28 +71,28 @@
             for (var j = 0; j < settings.rows; j++) {
                 var el = $('<div></div>').addClass('triangle');
 
-                if (settings.random) {
+                var baseColor = (j == 0 || i == settings.cols - 1) ? 'transparent' : settings.baseColor;
+                var paintColor = settings.paintColor;
+
+                if (settings.useBorderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
+                    paintColor = settings.useBorderColor;
+                }
+                else if (settings.random) {
                     var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
 
                     for (var k = 0; k < _randomColorsArray.length; k++) {
                         if (_randomColorsArray[k]['value'] > random) {
-                            el.css({
-                                'border-color': 'transparent transparent transparent',
-                                'border-right-color': _randomColorsArray[k]['key']
-                            });
-
-                            matrix[i][j] = el;
+                            paintColor = _randomColorsArray[k]['key'];
                             break;
                         }
                     }
-                } else {
-                    el.css({
-                        'border-color': 'transparent transparent transparent',
-                        'border-right-color': settings.baseColor
-                    });
-
-                    matrix[i][j] = el;
                 }
+
+                el.css({
+                    'border-color': 'transparent ' + baseColor + ' transparent ' + paintColor
+                });
+
+                matrix[i][j] = el;
             }
         }
     };
@@ -151,12 +151,8 @@
         var triangleMarginTop = Math.floor(triangleLength - diagonalLength);
         var triangleMarginLeft = triangleMarginTop;
 
-        console.log('triangleLength: ' + triangleLength);
-        console.log('triangleMarginTop: ' + triangleMarginTop);
-        console.log('divMarginTop: ' + (-triangleLength / Math.sqrt(2) - triangleMarginTop));
-
         var divMarginTop = Math.floor(triangleLength - triangleLength / Math.sqrt(2) - triangleMarginTop);
-        var divMarginLeft = Math.floor(-(triangleLength - triangleLength / Math.sqrt(2) - triangleMarginLeft));
+        var divMarginLeft = Math.floor(triangleLength / Math.sqrt(2) + triangleMarginLeft);
 
         if (!divStyle) {
             divStyle = $('<style></style>');
@@ -249,10 +245,8 @@
      * @public
      */
     triangles.destroy = function() {
-
         if (settings) {
-            var triangles = document.querySelector(settings.cssSelector);
-            triangles.innerHTML = '';
+            $(settings.cssSelector).empty();
         }
 
         matrix = [];
@@ -406,7 +400,7 @@
         })(0, 0);
     };
 
-    //
+     //
     // Public APIs
     //
 
