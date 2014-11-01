@@ -69,21 +69,28 @@
             matrix[i].push(new Array(settings.rows));
 
             for (var j = 0; j < settings.rows; j++) {
-                var el = document.createElement('div');
-                addClass(el, 'triangle');
+                var el = $('<div></div>').addClass('triangle');
 
                 if (settings.random) {
                     var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
 
                     for (var k = 0; k < _randomColorsArray.length; k++) {
                         if (_randomColorsArray[k]['value'] > random) {
-                            el.style.borderColor = 'transparent transparent transparent ' + _randomColorsArray[k]['key'];
+                            el.css({
+                                'border-color': 'transparent transparent transparent',
+                                'border-right-color': _randomColorsArray[k]['key']
+                            });
+
                             matrix[i][j] = el;
                             break;
                         }
                     }
                 } else {
-                    el.style.borderColor = 'transparent transparent transparent ' + settings.baseColor;
+                    el.css({
+                        'border-color': 'transparent transparent transparent',
+                        'border-right-color': settings.baseColor
+                    });
+
                     matrix[i][j] = el;
                 }
             }
@@ -142,18 +149,25 @@
         var columnWidth = Math.floor(triangleLength) - 1;
 
         var triangleMarginTop = Math.floor(triangleLength - diagonalLength);
+        var triangleMarginLeft = triangleMarginTop;
 
-        var divMarginTop = Math.floor(-triangleLength / Math.sqrt(2) - triangleMarginTop);
-        var divMarginLeft = Math.floor(triangleLength - triangleLength / Math.sqrt(2));
+        console.log('triangleLength: ' + triangleLength);
+        console.log('triangleMarginTop: ' + triangleMarginTop);
+        console.log('divMarginTop: ' + (-triangleLength / Math.sqrt(2) - triangleMarginTop));
+
+        var divMarginTop = Math.floor(triangleLength - triangleLength / Math.sqrt(2) - triangleMarginTop);
+        var divMarginLeft = Math.floor(-(triangleLength - triangleLength / Math.sqrt(2) - triangleMarginLeft));
 
         if (!divStyle) {
-            divStyle = document.createElement('style');
-            document.getElementsByTagName('body')[0].appendChild(divStyle);
+            divStyle = $('<style></style>');
+            $('body').append(divStyle);
         }
 
-        divStyle.innerHTML = settings.cssSelector + ' {  margin-top: ' + divMarginTop + 'px; margin-left: ' + divMarginLeft + 'px} ' +
+        divStyle.html(
+            settings.cssSelector + ' {  margin-top: ' + divMarginTop + 'px; margin-left: ' + divMarginLeft + 'px; } ' +
             settings.cssSelector + ' .triangle { border-width: ' + borderWidth + 'px; margin-top: ' + triangleMarginTop + 'px; } ' +
-            settings.cssSelector + ' .col { width: ' + columnWidth + 'px; }';
+            settings.cssSelector + ' .col { width: ' + columnWidth + 'px; }'
+        );
     };
 
     /**
@@ -161,28 +175,13 @@
      * @param {Array} colMatrix array contains the dom divs for each row in a column
      */
     function appendColumn(colMatrix) {
-        var col = document.createElement('div');
-        addClass(col, 'col');
+        var col = $('<div></div>').addClass('col');
 
         for (var row = 0; row < settings.rows; row++) {
-            col.appendChild(colMatrix[row]);
+            col.append(colMatrix[row]);
         }
 
-        var triangleDivs = document.querySelector(settings.cssSelector)
-        triangleDivs.appendChild(col);
-    };
-
-    /**
-     * Add css class to element, similar to jquery addClass
-     * @param {DOM Element} el
-     * @param {String} className
-     */
-    function addClass(el, className) {
-        if (el.classList) {
-            el.classList.add(className);
-        } else {
-            el.className += ' ' + className;
-        }
+        $(settings.cssSelector).append(col);
     };
 
     /**
@@ -251,8 +250,6 @@
      */
     triangles.destroy = function() {
 
-        console.log('destroy');
-
         if (settings) {
             var triangles = document.querySelector(settings.cssSelector);
             triangles.innerHTML = '';
@@ -288,25 +285,38 @@
             initRandomColorsArray();
             initMatrix();
             appendTriangles();
+
+            bindHoverTriangle();
+
+            $('#sidebar').hover(function() {
+                unbindHoverTriangle();
+                triangles.fadeOutVertical();
+            }, function() {
+                unbindHoverTriangle();
+                triangles.fadeInVertical();
+            });
         };
 
         generate();
 
         if (settings.updateOnResize) {
             window.addEventListener('resize', function(event){
-                defaults.width = window.innerWidth;
-                defaults.height = window.innerHeight;
-
                 generate();
             });
         }
-
-        $('#sidebar').hover(function() {
-            triangles.fadeOutDiagonal();
-        }, function() {
-            triangles.fadeInDiagonal();
-        });
     };
+
+    function bindHoverTriangle() {
+        $(settings.cssSelector + ' .triangle').hover(function() {
+            $(this).css('opacity', 0.5);
+        }, function() {
+            $(this).css('opacity', 1);
+        });
+    }
+
+    function unbindHoverTriangle() {
+        $(settings.cssSelector + ' .triangle').unbind('mouseenter mouseleave');
+    }
 
     triangles.fadeOutHorizontal = function() {
         fadeHorizontal(0);
@@ -326,6 +336,10 @@
                 opacity: toOpacity
             }, 100, function() {
                 fadeHorizontal(col + 1);
+
+                if (toOpacity == 1 && col == settings.cols - 1) {
+                    bindHoverTriangle();
+                }
             });
         })(0);
     };
@@ -349,9 +363,12 @@
             childs.animate({
                 opacity: toOpacity
             }, 100, function() {
-
                 if (this == childs[0]) {
                     animateFadeVertical(row + 1);
+                }
+
+                if (toOpacity == 1 && row == settings.rows - 1 && this == childs[childs.length - 1]) {
+                    bindHoverTriangle();
                 }
             });
         })(1);
@@ -376,11 +393,14 @@
                 opacity: toOpacity
             }, 100, function() {
 
-                console.log(col + ',' + row);
                 animateFadeDiagonal(col, row + 1);
 
                 if (row === 0) {
                     animateFadeDiagonal(col + 1, row);
+                }
+
+                if (toOpacity == 1 && row == settings.rows - 1 && col == settings.cols - 1) {
+                    bindHoverTriangle();
                 }
             });
         })(0, 0);
