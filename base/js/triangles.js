@@ -220,7 +220,7 @@
 
     /**
      * Convert object into a sorted array with prop as key and propValue as value
-     * @param obj { a: 1, b: 2 }
+     * @param obj e.g. { a: 1, b: 2 }
      * @returns {Array} Sorted array with objects e.g. [{ key: 1, value: 'a' }, { key: 2, value: 'b' }]
      */
     function sortObject(obj) {
@@ -338,6 +338,9 @@
         }
     };
 
+    /**
+     * Bind mouseenter and mouseleave event on the triangles as specified in the settings
+     */
     function bindHoverTriangle() {
         if (settings.onMouseEnter) {
             $(settings.cssSelector + ' .triangle').mouseenter(
@@ -349,9 +352,11 @@
                 settings.onMouseLeave
             );
         }
-
     }
 
+    /**
+     * Unbind mouseenter and mouseleave event on the triangles
+     */
     function unbindHoverTriangle() {
         $(settings.cssSelector + ' .triangle').unbind('mouseenter mouseleave');
     }
@@ -363,6 +368,10 @@
         fadeHorizontal(1);
     };
 
+    /**
+     * Fades triangles from left to right
+     * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
+     */
     function fadeHorizontal(toOpacity) {
 
         (function fadeHorizontal(col) {
@@ -389,6 +398,10 @@
         fadeVertical(1);
     };
 
+    /**
+     * Fades triangles from top to bottom
+     * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
+     */
     function fadeVertical(toOpacity) {
 
         (function animateFadeVertical(row) {
@@ -419,6 +432,10 @@
         fadeDiagonal(1);
     };
 
+    /**
+     * Fades triangles from top left to bottom right
+     * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
+     */
     function fadeDiagonal(toOpacity) {
 
         (function animateFadeDiagonal(col, row) {
