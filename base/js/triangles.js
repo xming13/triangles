@@ -1,4 +1,5 @@
 /**
+ * Plugin Template
  *
  * Name v0.0.1
  * Description, by Chris Ferdinandi.
@@ -33,7 +34,7 @@
 
     // Default settings
     var defaults = {
-        cssSelector: 'div#triangle',
+        cssSelector: 'div.triangles',
         width:  1000,
         height: 500,
         cols: 40,
@@ -45,14 +46,131 @@
 
         random: true,
         randomColors: { '#FFA666': 0.1, '#72A4AF': 0.3, '#CCC': 0.6 },
-        someVar: 123,
-        callbackBefore: function () {},
-        callbackAfter: function () {}
     };
 
     //
     // Methods
     //
+
+    /*
+     * Initialise matrix with rows and cols with baseColor
+     */
+    function initMatrix() {
+        matrix = [];
+
+        for (var i = 0; i < settings.cols; i++) {
+            matrix.push([]);
+            matrix[i].push(new Array(settings.rows));
+
+            for (var j = 0; j < settings.rows; j++) {
+
+                if (settings.random) {
+                    var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
+
+                    for (var k = 0; k < _randomColorsArray.length; k++) {
+                      if (_randomColorsArray[k]['value'] > random) {
+                          matrix[i][j] = _randomColorsArray[k]['key'];
+                          break;
+                      }
+                    }
+                }
+                else {
+                    matrix[i][j] = settings.baseColor;
+                }
+            }
+        }
+    }
+
+    /*
+       Creates an array sorted by chance value from randomColors option
+     */
+    function initRandomColorsArray() {
+        if (settings.randomColors) {
+            _randomColorsArray = sortObject(settings.randomColors);
+            Object.keys(_randomColorsArray).sort(function(a, b) {return _randomColorsArray[a] - _randomColorsArray[b]});
+
+            var sumChance = 0;
+            forEach(_randomColorsArray, function(color) {
+                sumChance += color['value'];
+                color['value'] = sumChance;
+            });
+        }
+    };
+
+    /*
+       Main methods for creating the triangle divs
+     */
+    function createTriangles() {
+        for (var col = 0; col < settings.cols; col++) {
+            createColumn(matrix[col]);
+        }
+
+        var triangleWidth = Math.floor(settings.width / settings.cols);
+        var triangleHeight = Math.floor(settings.height / settings.rows);
+        var columnWidth = Math.min(triangleWidth, triangleHeight);
+        var triangleBorderWidth = Math.floor(Math.sqrt(columnWidth / 2 * columnWidth / 2 * 2));
+        var marginLeft = triangleBorderWidth / 2;
+        var marginTop = -marginLeft;
+
+        $('body').append('<style>' +
+            settings.cssSelector + ' { margin-left: ' + marginLeft + 'px; margin-top: ' + marginTop + 'px;} ' +
+            '.triangle { border-width: ' + triangleBorderWidth + 'px; margin-top: ' + marginTop + 'px; } ' +
+            '.col { width: ' + columnWidth + 'px; }' +
+            '</style>')
+    }
+
+    /**
+     * create triangle divs for the column supplied by the colMatrix
+     * @param {Array} colMatrix array contains the color of the each row in a column
+     */
+    function createColumn(colMatrix) {
+        var col = document.createElement('div');
+        addClass(col, 'col');
+
+        for (var row = 0; row < settings.rows; row++) {
+            var el = document.createElement('div');
+            addClass(el, 'triangle');
+
+            el.style.borderColor = 'transparent transparent transparent ' + colMatrix[row];
+            col.appendChild(el);
+        }
+
+        var triangleDivs = document.querySelector(settings.cssSelector)
+        triangleDivs.appendChild(col);
+    }
+
+    /**
+     * Add css class to element, similar to jquery addClass
+     * @param {DOM Element} el
+     * @param {String} className
+     */
+    function addClass(el, className) {
+        if (el.classList) {
+            el.classList.add(className);
+        }
+        else {
+            el.className += ' ' + className;
+        }
+    }
+
+    /**
+     * Convert object into a sorted array with prop as key and propValue as value
+     * @param obj { a: 1, b: 2 }
+     * @returns {Array} Sorted array with objects e.g. [{ key: 1, value: 'a' }, { key: 2, value: 'b' }]
+     */
+    function sortObject(obj) {
+        var arr = [];
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+                arr.push({
+                    'key': prop,
+                    'value': obj[prop]
+                });
+            }
+        }
+        arr.sort(function(a, b) { return a.value - b.value; });
+        return arr;
+    }
 
     /**
      * A simple forEach() implementation for Arrays, Objects and NodeLists
@@ -94,144 +212,6 @@
     };
 
     /**
-     * Convert data-options attribute into an object of key/value pairs
-     * @private
-     * @param {String} options Link-specific options as a data attribute string
-     * @returns {Object}
-     */
-    var getDataOptions = function ( options ) {
-        return !options || !(typeof JSON === 'object' && typeof JSON.parse === 'function') ? {} : JSON.parse( options );
-    };
-
-    /*
-     * Initialise matrix with rows and cols with baseColor
-     */
-    function initMatrix() {
-        matrix = [];
-
-        for (var i = 0; i < settings.cols; i++) {
-            matrix.push([]);
-            matrix[i].push(new Array(settings.rows));
-
-            for (var j = 0; j < settings.rows; j++) {
-
-                console.log(settings.random);
-
-                if (settings.random) {
-                    var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
-
-
-                    for (var k = 0; k < _randomColorsArray.length; k++) {
-                      if (_randomColorsArray[k]['value'] > random) {
-                          matrix[i][j] = _randomColorsArray[k]['key'];
-                          break;
-                      }
-                    }
-                }
-                else {
-                    matrix[i][j] = settings.baseColor;
-                }
-            }
-        }
-    }
-
-    function createTriangles() {
-        for (var col = 0; col < settings.cols; col++) {
-            createColumn(matrix[col]);
-        }
-
-        var triangleWidth = Math.floor(settings.width / settings.cols);
-        var triangleHeight = Math.floor(settings.height / settings.rows);
-        var columnWidth = Math.min(triangleWidth, triangleHeight);
-        var triangleBorderWidth = Math.floor(Math.sqrt(columnWidth / 2 * columnWidth / 2 * 2));
-        var marginLeft = triangleBorderWidth / 2;
-        var marginTop = -marginLeft;
-
-        $('body').append('<style>' +
-            settings.cssSelector + ' { margin-left: ' + marginLeft + 'px; margin-top: ' + marginTop + 'px;} ' +
-            '.triangle, .empty { border-width: ' + triangleBorderWidth + 'px; margin-top: ' + marginTop + 'px; } ' +
-            '.col { width: ' + columnWidth + 'px; }' +
-            '</style>')
-    }
-
-    function createColumn(colMatrix) {
-        var col = document.createElement('div');
-        addClass(col, 'col');
-
-        for (var row = 0; row < settings.rows; row++) {
-            var el = document.createElement('div');
-            addClass(el, 'triangle');
-
-            el.style.borderColor = 'transparent transparent transparent ' + colMatrix[row];
-            col.appendChild(el);
-        }
-
-        var triangleDivs = document.querySelector(settings.cssSelector)
-        triangleDivs.appendChild(col);
-    }
-
-    function addClass(el, className) {
-        if (el.classList) {
-            el.classList.add(className);
-        }
-        else {
-            el.className += ' ' + className;
-        }
-    }
-
-    function Triangles() {
-        for (var col = 0; col < this._columns; col++) {
-            this._createColumn(col, matrix[col]);
-        }
-
-        var triangleWidth = Math.floor(settings.width / settings.cols);
-        var triangleHeight = Math.floor(settings.height / settings.rows);
-        var columnWidth = Math.min(triangleWidth, triangleHeight);
-        var triangleBorderWidth = Math.floor(Math.sqrt(columnWidth / 2 * columnWidth / 2 * 2));
-        var marginLeft = triangleBorderWidth / 2;
-        var marginTop = -marginLeft;
-
-        $('body').append('<style>' +
-            settings.cssSelector + ' { margin-left: ' + marginLeft + 'px; margin-top: ' + marginTop + 'px;} ' +
-            '.triangle, .empty { border-width: ' + triangleBorderWidth + 'px; margin-top: ' + marginTop + 'px; } ' +
-            '.col { width: ' + columnWidth + 'px; }' +
-            '</style>')
-    };
-
-    /**
-     * Sort object by value
-     * @param obj
-     * @returns {Array} Sorted array with objects e.g. [{key}]
-     */
-    function sortObject(obj) {
-        var arr = [];
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-                arr.push({
-                    'key': prop,
-                    'value': obj[prop]
-                });
-            }
-        }
-        arr.sort(function(a, b) { return a.value - b.value; });
-        return arr;
-    }
-
-    function initRandomColorsArray() {
-        if (settings.randomColors) {
-            _randomColorsArray = sortObject(settings.randomColors);
-            Object.keys(_randomColorsArray).sort(function(a, b) {return _randomColorsArray[a] - _randomColorsArray[b]});
-
-            var sumChance = 0;
-            forEach(_randomColorsArray, function(color) {
-                sumChance += color['value'];
-                color['value'] = sumChance;
-                console.log(color['key'] + ' - ' + color['value']);
-            });
-        }
-    };
-
-    /**
      * Destroy the current initialization.
      * @public
      */
@@ -260,13 +240,9 @@
         createTriangles();
     };
 
-    triangles.getMatrix = function() {
-        console.log(matrix);
-    };
     //
     // Public APIs
     //
 
     return triangles;
-
 });
