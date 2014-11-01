@@ -9,16 +9,15 @@
  * http://gomakethings.com/mit/
  *
  */
-
-(function (root, factory) {
-    if ( typeof define === 'function' && define.amd ) {
+(function(root, factory) {
+    if (typeof define === 'function' && define.amd) {
         define('triangles', factory(root));
-    } else if ( typeof exports === 'object' ) {
+    } else if (typeof exports === 'object') {
         module.exports = factory(root);
     } else {
         root.triangles = factory(root);
     }
-})(window || this, function (root) {
+})(window || this, function(root) {
 
     'use strict';
 
@@ -29,13 +28,13 @@
     var triangles = {}; // Object for public APIs
     var supports = !!document.querySelector && !!root.addEventListener; // Feature test
     var settings; // Plugin settings
-    var matrix = [];
-    var _randomColorsArray = [];
+    var matrix = []; // matrix to hold the triangles divs
+    var _randomColorsArray = []; // sorted array for random colors and chance of selecting
 
     // Default settings
     var defaults = {
         cssSelector: 'div.triangles',
-        width:  1000,
+        width: 1000,
         height: 500,
         cols: 40,
         rows: 20,
@@ -45,7 +44,11 @@
         paintColor: '#fff',
 
         random: true,
-        randomColors: { '#FFA666': 0.1, '#72A4AF': 0.3, '#CCC': 0.6 },
+        randomColors: {
+            '#FFA666': 0.1,
+            '#72A4AF': 0.3,
+            '#CCC': 0.6
+        }
     };
 
     //
@@ -53,7 +56,7 @@
     //
 
     /*
-     * Initialise matrix with rows and cols with baseColor
+     * Initialise matrix with newly created triangle divs
      */
     function initMatrix() {
         matrix = [];
@@ -63,31 +66,36 @@
             matrix[i].push(new Array(settings.rows));
 
             for (var j = 0; j < settings.rows; j++) {
+                var el = document.createElement('div');
+                addClass(el, 'triangle');
 
                 if (settings.random) {
                     var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
 
                     for (var k = 0; k < _randomColorsArray.length; k++) {
-                      if (_randomColorsArray[k]['value'] > random) {
-                          matrix[i][j] = _randomColorsArray[k]['key'];
-                          break;
-                      }
+                        if (_randomColorsArray[k]['value'] > random) {
+                            el.style.borderColor = 'transparent transparent transparent ' + _randomColorsArray[k]['key'];
+                            matrix[i][j] = el;
+                            break;
+                        }
                     }
-                }
-                else {
-                    matrix[i][j] = settings.baseColor;
+                } else {
+                    el.style.borderColor = 'transparent transparent transparent ' + settings.baseColor;
+                    matrix[i][j] = el;
                 }
             }
         }
-    }
+    };
 
     /*
-       Creates an array sorted by chance value from randomColors option
+     Creates an array sorted by chance value from randomColors option
      */
     function initRandomColorsArray() {
         if (settings.randomColors) {
             _randomColorsArray = sortObject(settings.randomColors);
-            Object.keys(_randomColorsArray).sort(function(a, b) {return _randomColorsArray[a] - _randomColorsArray[b]});
+            Object.keys(_randomColorsArray).sort(function(a, b) {
+                return _randomColorsArray[a] - _randomColorsArray[b]
+            });
 
             var sumChance = 0;
             forEach(_randomColorsArray, function(color) {
@@ -98,7 +106,7 @@
     };
 
     /*
-       Main methods for creating the triangle divs
+     Main methods for appending the triangle divs
      */
     function createTriangles() {
         for (var col = 0; col < settings.cols; col++) {
@@ -117,27 +125,23 @@
             '.triangle { border-width: ' + triangleBorderWidth + 'px; margin-top: ' + marginTop + 'px; } ' +
             '.col { width: ' + columnWidth + 'px; }' +
             '</style>')
-    }
+    };
 
     /**
-     * create triangle divs for the column supplied by the colMatrix
-     * @param {Array} colMatrix array contains the color of the each row in a column
+     * Append triangle divs to the column supplied by the colMatrix
+     * @param {Array} colMatrix array contains the dom divs for each row in a column
      */
     function createColumn(colMatrix) {
         var col = document.createElement('div');
         addClass(col, 'col');
 
         for (var row = 0; row < settings.rows; row++) {
-            var el = document.createElement('div');
-            addClass(el, 'triangle');
-
-            el.style.borderColor = 'transparent transparent transparent ' + colMatrix[row];
-            col.appendChild(el);
+            col.appendChild(colMatrix[row]);
         }
 
         var triangleDivs = document.querySelector(settings.cssSelector)
         triangleDivs.appendChild(col);
-    }
+    };
 
     /**
      * Add css class to element, similar to jquery addClass
@@ -147,11 +151,10 @@
     function addClass(el, className) {
         if (el.classList) {
             el.classList.add(className);
-        }
-        else {
+        } else {
             el.className += ' ' + className;
         }
-    }
+    };
 
     /**
      * Convert object into a sorted array with prop as key and propValue as value
@@ -168,9 +171,11 @@
                 });
             }
         }
-        arr.sort(function(a, b) { return a.value - b.value; });
+        arr.sort(function(a, b) {
+            return a.value - b.value;
+        });
         return arr;
-    }
+    };
 
     /**
      * A simple forEach() implementation for Arrays, Objects and NodeLists
@@ -179,7 +184,7 @@
      * @param {Function} callback Callback function for each iteration
      * @param {Array|Object|NodeList} scope Object/NodeList/Array that forEach is iterating over (aka `this`)
      */
-    var forEach = function (collection, callback, scope) {
+    var forEach = function(collection, callback, scope) {
         if (Object.prototype.toString.call(collection) === '[object Object]') {
             for (var prop in collection) {
                 if (Object.prototype.hasOwnProperty.call(collection, prop)) {
@@ -200,12 +205,12 @@
      * @param {Object} options User options
      * @returns {Object} Merged values of defaults and options
      */
-    var extend = function ( defaults, options ) {
+    var extend = function(defaults, options) {
         var extended = {};
-        forEach(defaults, function (value, prop) {
+        forEach(defaults, function(value, prop) {
             extended[prop] = defaults[prop];
         });
-        forEach(options, function (value, prop) {
+        forEach(options, function(value, prop) {
             extended[prop] = options[prop];
         });
         return extended;
@@ -215,7 +220,7 @@
      * Destroy the current initialization.
      * @public
      */
-    triangles.destroy = function () {
+    triangles.destroy = function() {
         matrix = [];
     };
 
@@ -224,16 +229,16 @@
      * @public
      * @param {Object} options User settings
      */
-    triangles.init = function ( options ) {
+    triangles.init = function(options) {
 
         // feature test
-        if ( !supports ) return;
+        if (!supports) return;
 
         // Destroy any existing initializations
         triangles.destroy();
 
         // Selectors and variables
-        settings = extend( defaults, options || {} ); // Merge user options with defaults
+        settings = extend(defaults, options || {}); // Merge user options with defaults
 
         initRandomColorsArray();
         initMatrix();
