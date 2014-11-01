@@ -251,6 +251,8 @@
      */
     triangles.destroy = function() {
 
+        console.log('destroy');
+
         if (settings) {
             var triangles = document.querySelector(settings.cssSelector);
             triangles.innerHTML = '';
@@ -298,6 +300,90 @@
                 generate();
             });
         }
+
+        $('#sidebar').hover(function() {
+            triangles.fadeOutDiagonal();
+        }, function() {
+            triangles.fadeInDiagonal();
+        });
+    };
+
+    triangles.fadeOutHorizontal = function() {
+        fadeHorizontal(0);
+    };
+    triangles.fadeInHorizontal = function() {
+        fadeHorizontal(1);
+    };
+
+    function fadeHorizontal(toOpacity) {
+
+        (function fadeHorizontal(col) {
+            if (!matrix[col] || !matrix[col][0]) {
+                return;
+            }
+
+            $(matrix[col][0]).parent().animate({
+                opacity: toOpacity
+            }, 100, function() {
+                fadeHorizontal(col + 1);
+            });
+        })(0);
+    };
+
+    triangles.fadeOutVertical = function() {
+        fadeVertical(0);
+    };
+    triangles.fadeInVertical = function() {
+        fadeVertical(1);
+    };
+
+    function fadeVertical(toOpacity) {
+
+        (function animateFadeVertical(row) {
+
+            var childs = $(settings.cssSelector + ' .col .triangle:nth-child(' + row + ')');
+            if (!childs || childs.length === 0) {
+                return;
+            }
+
+            childs.animate({
+                opacity: toOpacity
+            }, 100, function() {
+
+                if (this == childs[0]) {
+                    animateFadeVertical(row + 1);
+                }
+            });
+        })(1);
+    };
+
+    triangles.fadeOutDiagonal = function() {
+        fadeDiagonal(0);
+    };
+    triangles.fadeInDiagonal = function() {
+        fadeDiagonal(1);
+    };
+
+    function fadeDiagonal(toOpacity) {
+
+        (function animateFadeDiagonal(col, row) {
+
+            if (!matrix[col] || !matrix[col][row]) {
+                return;
+            }
+
+            $(matrix[col][row]).animate({
+                opacity: toOpacity
+            }, 100, function() {
+
+                console.log(col + ',' + row);
+                animateFadeDiagonal(col, row + 1);
+
+                if (row === 0) {
+                    animateFadeDiagonal(col + 1, row);
+                }
+            });
+        })(0, 0);
     };
 
     //
