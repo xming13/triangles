@@ -22,7 +22,9 @@
             borderColor: '#ddd',
             baseColor: 'white',
             updateOnResize: true,
-            gradient: { left: '#00f', right: '#adfe45' }
+            gradient: { left: '#00f', right: '#adfe45' },
+            onMouseEnter: function() { $(this).css('opacity', '0'); },
+            onMouseLeave: function() { $(this).css('opacity', '1'); }
         });
     }
 </script>

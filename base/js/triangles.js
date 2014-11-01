@@ -53,7 +53,10 @@
             '#FFA666': 0.1,
             '#72A4AF': 0.3,
             '#CCC': 0.6
-        }
+        },
+
+        onMouseEnter: null,
+        onMouseLeave: null
     };
 
     //
@@ -336,11 +339,17 @@
     };
 
     function bindHoverTriangle() {
-        $(settings.cssSelector + ' .triangle').hover(function() {
-            $(this).css('opacity', 0.5);
-        }, function() {
-            $(this).css('opacity', 1);
-        });
+        if (settings.onMouseEnter) {
+            $(settings.cssSelector + ' .triangle').mouseenter(
+                settings.onMouseEnter
+            );
+        }
+        if (settings.onMouseLeave) {
+            $(settings.cssSelector + ' .triangle').mouseleave(
+                settings.onMouseLeave
+            );
+        }
+
     }
 
     function unbindHoverTriangle() {
@@ -436,6 +445,7 @@
     };
 
     /**
+     * https://github.com/mjackson/mjijackson.github.com/blob/master/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript.txt
      * Converts a hex color value to HSV
      * returns r, g and b in the set [0, 255].
      * @param {String} hex The hex color value, e.g. #fff, #aaccff
