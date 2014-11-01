@@ -44,7 +44,7 @@
         paintColor: '#fff',
 
         random: true,
-        randomColors: { 'FFA666': 1.0, '#72A4AF': 0.3, '#333': 0.6 },
+        randomColors: { '#FFA666': 0.1, '#72A4AF': 0.3, '#CCC': 0.6 },
         someVar: 123,
         callbackBefore: function () {},
         callbackAfter: function () {}
