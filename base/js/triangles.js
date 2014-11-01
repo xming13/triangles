@@ -108,9 +108,9 @@
                     hsvFrom = rgbToHsv(rgbFrom[0], rgbFrom[1], rgbFrom[2]);
                     hsvTo = rgbToHsv(rgbTo[0], rgbTo[1], rgbTo[2]);
 
-                    colorH = ratio * hsvFrom[0] + (1 - ratio) * hsvTo[0];
-                    colorS = ratio * hsvFrom[1] + (1 - ratio) * hsvTo[1];
-                    colorV = ratio * hsvFrom[2] + (1 - ratio) * hsvTo[2];
+                    colorH = (1 - ratio) * hsvFrom[0] + ratio * hsvTo[0];
+                    colorS = (1 - ratio) * hsvFrom[1] + ratio * hsvTo[1];
+                    colorV = (1 - ratio) * hsvFrom[2] + ratio * hsvTo[2];
 
                     colorRgb = hsvToRgb(colorH, colorS, colorV);
                     paintColor = 'rgb(' + Math.round(colorRgb[0]) + ',' + Math.round(colorRgb[1]) + ',' + Math.round(colorRgb[2]) + ')';
