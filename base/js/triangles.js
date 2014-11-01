@@ -42,7 +42,7 @@
 
         updateOnResize: true,
 
-        useBorderColor: '',
+        borderColor: '',
         baseColor: 'blue',
         paintColor: '#fff',
 
@@ -76,8 +76,8 @@
                 var baseColor = (j == 0 || i == settings.cols - 1) ? 'transparent' : settings.baseColor;
                 var paintColor = settings.paintColor;
 
-                if (settings.useBorderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
-                    paintColor = settings.useBorderColor;
+                if (settings.borderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
+                    paintColor = settings.borderColor;
                 }
                 else if (settings.gradient) {
 
