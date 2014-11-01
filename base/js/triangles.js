@@ -80,23 +80,37 @@
                     paintColor = settings.borderColor;
                 }
                 else if (settings.gradient) {
+                    var rgbFrom, rgbTo,
+                        hsvFrom, hsvTo,
+                        ratio,
+                        colorH, colorS, colorV,
+                        colorRgb;
 
-                    if (settings.gradient.topLeft) {
-                        var rgbTopLeft = hexToRgb(settings.gradient.topLeft);
-                        var rgbBottomRight = hexToRgb(settings.gradient.bottomRight);
-
-                        var topLeftColor = rgbToHsv(rgbTopLeft[0], rgbTopLeft[1], rgbTopLeft[2]);
-                        var botRightColor = rgbToHsv(rgbBottomRight[0], rgbBottomRight[1], rgbBottomRight[2]);
-
-                        var ratio = (i + j) / (settings.rows + settings.cols - 2);
-
-                        var colorH = ratio * topLeftColor[0] + (1 - ratio) * botRightColor[0];
-                        var colorS = ratio * topLeftColor[1] + (1 - ratio) * botRightColor[1];
-                        var colorV = ratio * topLeftColor[2] + (1 - ratio) * botRightColor[2];
-
-                        var colorRgb = hsvToRgb(colorH, colorS, colorV);
-                        paintColor = 'rgb(' + Math.round(colorRgb[0]) + ',' + Math.round(colorRgb[1]) + ',' + Math.round(colorRgb[2]) + ')';
+                    if (settings.gradient.top) {
+                        rgbFrom = hexToRgb(settings.gradient.top);
+                        rgbTo = hexToRgb(settings.gradient.bottom);
+                        ratio = j / (settings.rows - 1);
                     }
+                    else if (settings.gradient.left) {
+                        rgbFrom = hexToRgb(settings.gradient.left);
+                        rgbTo = hexToRgb(settings.gradient.right);
+                        ratio = i / (settings.cols - 1);
+                    }
+                    else if (settings.gradient.topLeft) {
+                        rgbFrom = hexToRgb(settings.gradient.topLeft);
+                        rgbTo = hexToRgb(settings.gradient.bottomRight);
+                        ratio = (i + j) / (settings.rows + settings.cols - 2);
+                    }
+
+                    hsvFrom = rgbToHsv(rgbFrom[0], rgbFrom[1], rgbFrom[2]);
+                    hsvTo = rgbToHsv(rgbTo[0], rgbTo[1], rgbTo[2]);
+
+                    colorH = ratio * hsvFrom[0] + (1 - ratio) * hsvTo[0];
+                    colorS = ratio * hsvFrom[1] + (1 - ratio) * hsvTo[1];
+                    colorV = ratio * hsvFrom[2] + (1 - ratio) * hsvTo[2];
+
+                    colorRgb = hsvToRgb(colorH, colorS, colorV);
+                    paintColor = 'rgb(' + Math.round(colorRgb[0]) + ',' + Math.round(colorRgb[1]) + ',' + Math.round(colorRgb[2]) + ')';
                 }
                 else if (settings.random) {
                     var random = Math.random() * _randomColorsArray[_randomColorsArray.length - 1]['value'];
