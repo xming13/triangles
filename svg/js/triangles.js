@@ -30,7 +30,6 @@
     var settings; // Plugin settings
     var matrix = []; // matrix to hold the triangles divs
     var _randomColorsArray = []; // sorted array for random colors and chance of selecting
-    var divStyle;
 
     // Default settings
     var defaults = {
@@ -64,6 +63,15 @@
     //
 
     /*
+     * Main method to initialize and draw svg
+     */
+    function loadSvg(svg) {
+        initMatrix();
+        initRandomColorsArray();
+        appendTriangles(svg);
+    }
+
+    /*
      * Initialise matrix with newly created triangle divs
      */
     function initMatrix() {
@@ -74,9 +82,7 @@
             matrix[i].push(new Array(settings.rows));
 
             for (var j = 0; j < settings.rows; j++) {
-                var el = $('<div></div>').addClass('triangle');
-
-                var baseColor = (j == 0 || i == settings.cols - 1) ? 'transparent' : settings.baseColor;
+                var baseColor = settings.baseColor;
                 var paintColor = settings.paintColor;
 
                 if (settings.borderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
@@ -92,17 +98,35 @@
                     if (settings.gradient.top) {
                         rgbFrom = hexToRgb(settings.gradient.top);
                         rgbTo = hexToRgb(settings.gradient.bottom);
-                        ratio = j / (settings.rows - 1);
+
+                        if (settings.borderColor) {
+                            ratio = (j - 1) / (settings.rows - 2);
+                        }
+                        else {
+                            ratio = j / settings.rows;
+                        }
                     }
                     else if (settings.gradient.left) {
                         rgbFrom = hexToRgb(settings.gradient.left);
                         rgbTo = hexToRgb(settings.gradient.right);
-                        ratio = i / (settings.cols - 1);
+
+                        if (settings.borderColor) {
+                            ratio = (i - 1) / (settings.cols);
+                        }
+                        else {
+                            ratio = i / settings.cols;
+                        }
                     }
                     else if (settings.gradient.topLeft) {
                         rgbFrom = hexToRgb(settings.gradient.topLeft);
                         rgbTo = hexToRgb(settings.gradient.bottomRight);
-                        ratio = (i + j) / (settings.rows + settings.cols - 2);
+
+                        if (settings.borderColor) {
+                            ratio = (i + j - 2) / (settings.rows + settings.cols - 2);
+                        }
+                        else {
+                            ratio = (i + j) / (settings.rows + settings.cols);
+                        }
                     }
 
                     hsvFrom = rgbToHsv(rgbFrom[0], rgbFrom[1], rgbFrom[2]);
@@ -126,11 +150,7 @@
                     }
                 }
 
-                el.css({
-                    'border-color': 'transparent ' + baseColor + ' transparent ' + paintColor
-                });
-
-                matrix[i][j] = el;
+                matrix[i][j] = [baseColor, paintColor];
             }
         }
     };
@@ -156,66 +176,26 @@
     /*
      Main methods for appending the triangle divs
      */
-    function appendTriangles() {
+    function appendTriangles(svg) {
+
+        var tWidth = settings.width / settings.cols;
+        var tHeight = settings.height / settings.rows;
+        var minLength = Math.floor(Math.min(tWidth, tHeight));
+
+        $(settings.cssSelector).width(minLength * settings.cols).height(minLength * settings.rows);
+
         for (var col = 0; col < settings.cols; col++) {
-            appendColumn(matrix[col]);
+            for (var row = 0; row < settings.rows; row++) {
+                var ox = col * minLength;
+                var oy = row * minLength;
+
+                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
+                var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
+
+                svg.polygon(bases, {fill: matrix[col][row][0]});
+                svg.polygon(paints, {fill: matrix[col][row][1]});
+            }
         }
-
-        var squareWidth = settings.width / settings.cols;
-        var squareHeight = settings.height / settings.rows;
-
-        /*
-         * _______ <--- triangleLength
-         * \    /|
-         *  \  /<------ borderWidth
-         *   \/  |
-         *    \  |
-         *     \<------ diagonalLength
-         *      \|
-         */
-        // length of the horizontal/vertical side of the triangle
-        // here we take the minimum of the two
-        var triangleLength = Math.min(squareWidth, squareHeight);
-
-        // the length of the diagonal side of the triangle
-        var diagonalLength = triangleLength  * Math.sqrt(2);
-
-        var borderWidth = Math.floor(diagonalLength / 2);
-
-        // width of each column which is same as the triangle length
-        // -1 here to be safe as sometimes the scroll bar's width will cause the column to go to next row
-        var columnWidth = Math.floor(triangleLength) - 1;
-
-        var triangleMarginTop = Math.floor(triangleLength - diagonalLength);
-        var triangleMarginLeft = triangleMarginTop;
-
-        var divMarginTop = Math.floor(triangleLength - triangleLength / Math.sqrt(2) - triangleMarginTop);
-        var divMarginLeft = Math.floor(triangleLength / Math.sqrt(2) + triangleMarginLeft);
-
-        if (!divStyle) {
-            divStyle = $('<style></style>');
-            $('body').append(divStyle);
-        }
-
-        divStyle.html(
-            settings.cssSelector + ' {  margin-top: ' + divMarginTop + 'px; margin-left: ' + divMarginLeft + 'px; } ' +
-            settings.cssSelector + ' .triangle { border-width: ' + borderWidth + 'px; margin-top: ' + triangleMarginTop + 'px; } ' +
-            settings.cssSelector + ' .col { width: ' + columnWidth + 'px; }'
-        );
-    };
-
-    /**
-     * Append triangle divs to the column supplied by the colMatrix
-     * @param {Array} colMatrix array contains the dom divs for each row in a column
-     */
-    function appendColumn(colMatrix) {
-        var col = $('<div></div>').addClass('col');
-
-        for (var row = 0; row < settings.rows; row++) {
-            col.append(colMatrix[row]);
-        }
-
-        $(settings.cssSelector).append(col);
     };
 
     /**
@@ -314,12 +294,6 @@
             // Selectors and variables
             settings = extend(defaults, options || {}); // Merge user options with defaults
 
-            initRandomColorsArray();
-            initMatrix();
-            appendTriangles();
-
-            bindHoverTriangle();
-
             $('#sidebar').hover(function() {
                 unbindHoverTriangle();
                 triangles.fadeOutVertical();
@@ -327,10 +301,16 @@
                 unbindHoverTriangle();
                 triangles.fadeInVertical();
             });
+
+            $(settings.cssSelector).svg({onLoad: loadSvg});
         };
 
         generate();
 
+        function drawIntro(svg) {
+            svg.rect(20, 50, 100, 50,
+                {fill: 'yellow', stroke: 'navy', strokeWidth: 5});
+        }
         if (settings.updateOnResize) {
             window.addEventListener('resize', function(event){
                 generate();
@@ -388,10 +368,8 @@
         settings.cols = width;
         settings.rows = height;
 
-        console.log(settings.cols);
-        console.log(settings.rows);
-        settings.width = width * 2 * Math.sqrt(2) * 2;
-        settings.height = height * 2 * 2;
+        settings.width = width ;
+        settings.height = height;
 
         for (var i = 0; i < settings.cols; i++) {
             matrix.push([]);
@@ -402,19 +380,16 @@
 
                 var inpos = (i * 4) + (j * settings.cols * 4); // *4 for 4 ints per pixel
 
-                var baseColor = (j == 0 || i == settings.cols - 1) ? 'transparent' : settings.baseColor;
+                var baseColor = settings.baseColor;
                 var paintColor = 'rgba(' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ')';
 
-                el.css({
-                    'border-color': 'transparent ' + baseColor + ' transparent ' + paintColor
-                });
-
-                matrix[i][j] = el;
+                matrix[i][j] = [baseColor, paintColor];
             }
         }
 
-        $(settings.cssSelector).empty();
-        appendTriangles();
+        var svg = $(settings.cssSelector).svg('get');
+        svg.clear();
+        appendTriangles(svg);
     };
 
     function cancel(event) {
