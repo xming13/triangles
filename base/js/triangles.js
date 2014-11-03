@@ -336,7 +336,92 @@
                 generate();
             });
         }
+
+        var fileDrop = $('#filedrop');
+        fileDrop.on('dragover', cancel);
+        fileDrop.on('dragenter', cancel);
+        fileDrop.on('dragexit', cancel);
+        fileDrop.on('drop', dropFile);
     };
+
+    function dropFile(event) {
+
+        event.stopPropagation();
+        event.preventDefault();
+
+        // query what was dropped
+        var files = event.originalEvent.dataTransfer.files;
+
+        // if we have something
+        if(files.length) {
+            var fileReader 			= new FileReader();
+            fileReader.onloadend	= fileUploaded;
+            fileReader.readAsDataURL(files[0]);
+        }
+    };
+
+    function fileUploaded(event) {
+        if(event.target.result.match(/^data:image/)) {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            var img = new Image();
+            img.src = event.target.result;
+            img.onload = function () {
+                var width = canvas.width = img.width;
+                var height = canvas.height = img.height;
+
+                context.drawImage(img,0,0,img.width,img.height);
+
+                var imageData = context.getImageData(0, 0, width, height);
+
+                initMatrixWithArray(imageData, width, height);
+            }
+        }
+        else {
+            alert("Only image file is supported!");
+        }
+    };
+
+    function initMatrixWithArray(imageDataArr, width, height) {
+        matrix = [];
+        settings.cols = width;
+        settings.rows = height;
+
+        console.log(settings.cols);
+        console.log(settings.rows);
+        settings.width = width * 2 * Math.sqrt(2) * 2;
+        settings.height = height * 2 * 2;
+
+        for (var i = 0; i < settings.cols; i++) {
+            matrix.push([]);
+            matrix[i].push(new Array(settings.rows));
+
+            for (var j = 0; j < settings.rows; j++) {
+                var el = $('<div></div>').addClass('triangle');
+
+                var inpos = (i * 4) + (j * settings.cols * 4); // *4 for 4 ints per pixel
+
+                var baseColor = (j == 0 || i == settings.cols - 1) ? 'transparent' : settings.baseColor;
+                var paintColor = 'rgba(' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ')';
+
+                el.css({
+                    'border-color': 'transparent ' + baseColor + ' transparent ' + paintColor
+                });
+
+                matrix[i][j] = el;
+            }
+        }
+
+        $(settings.cssSelector).empty();
+        appendTriangles();
+    };
+
+    function cancel(event) {
+        if(event.preventDefault) {
+            event.preventDefault();
+        }
+    }
 
     /**
      * Bind mouseenter and mouseleave event on the triangles as specified in the settings
