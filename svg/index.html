@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang ="en">
+
+<head>
+  <title>Triangles</title>
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0' name='viewport' />
+  <meta name="viewport" content="width=device-width" />
+  <link rel="stylesheet" href="css/triangles.css" type="text/css">
+</head>
+
+<body>
+<div id="filedrop">
+    <img src="images/drop-image.png" />
+</div>
+<canvas id='canvas'></canvas>
+
+<div class="clear" style="clear:both;"></div>
+
+<div class="triangles"></div>
+
+<div id="sidebar"><div class="sideways">Disappear</div></div>
+
+<script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="js/triangles.js"></script>
+<script>
+    window.onload = function() {
+        triangles.init({
+            rows: 20,
+            cols: 20,
+            //borderColor: '#ddd',
+            baseColor: 'white',
+            updateOnResize: false,
+            gradient: { left: '#f00', right: '#000' },
+            onMouseEnter: function() { $(this).css('opacity', '0'); },
+            onMouseLeave: function() { $(this).css('opacity', '1'); }
+        });
+    }
+</script>
+
+</body>
+
+</html>
