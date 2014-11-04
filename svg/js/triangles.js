@@ -38,6 +38,7 @@
         height: 500,
         cols: 20,
         rows: 20,
+        minTriangleLength: 4,
 
         updateOnResize: true,
 
@@ -182,7 +183,8 @@
         var tHeight = settings.height / settings.rows;
         var minLength = Math.floor(Math.min(tWidth, tHeight));
 
-        $(settings.cssSelector).width(minLength * settings.cols).height(minLength * settings.rows);
+//        $(settings.cssSelector).width(minLength * settings.cols).height(minLength * settings.rows);
+        $(settings.cssSelector).width(settings.width).height(settings.height);
 
         for (var col = 0; col < settings.cols; col++) {
             for (var row = 0; row < settings.rows; row++) {
@@ -307,10 +309,6 @@
 
         generate();
 
-        function drawIntro(svg) {
-            svg.rect(20, 50, 100, 50,
-                {fill: 'yellow', stroke: 'navy', strokeWidth: 5});
-        }
         if (settings.updateOnResize) {
             window.addEventListener('resize', function(event){
                 generate();
@@ -365,28 +363,38 @@
 
     function initMatrixWithArray(imageDataArr, width, height) {
         matrix = [];
-        settings.cols = width;
-        settings.rows = height;
 
         settings.width = width ;
         settings.height = height;
+
+        settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
+        settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
+
+        while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
+            settings.cols--;
+        }
+        while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
+            settings.rows--;
+        }
+
+        var stepX = Math.floor(settings.width / settings.cols);
+        var stepY = Math.floor(settings.height / settings.rows);
 
         for (var i = 0; i < settings.cols; i++) {
             matrix.push([]);
             matrix[i].push(new Array(settings.rows));
 
             for (var j = 0; j < settings.rows; j++) {
-                var el = $('<div></div>').addClass('triangle');
-
-                var inpos = (i * 4) + (j * settings.cols * 4); // *4 for 4 ints per pixel
+                var inpos = ((i * stepX) * 4) + ((j * stepY) * settings.width * 4); // *4 for 4 ints per pixel
 
                 var baseColor = settings.baseColor;
-                var paintColor = 'rgba(' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ',' + imageDataArr.data[inpos++] + ')';
+                var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
 
                 matrix[i][j] = [baseColor, paintColor];
             }
         }
 
+        $(settings.cssSelector).width(settings.width).height(settings.height);
         var svg = $(settings.cssSelector).svg('get');
         svg.clear();
         appendTriangles(svg);
