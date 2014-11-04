@@ -11,6 +11,36 @@ html, body {
   font-family: Helvetica, Arial;
   font-weight: 700;
   font-size: 20px;
+
+}
+
+body {
+    margin-top: 40px;
+}
+
+#topbar {
+    position: fixed;
+    width: 100%;
+    color: white;
+    background-color: #1b2126;
+    top: 0;
+    cursor: pointer;
+}
+
+#topbar div {
+    width: calc(33% - 20px);
+    display: inline-block;
+    text-align: center;
+    padding: 10px;
+}
+
+#topbar div:hover {
+    color: #bbb;
+}
+
+#filedrop {
+    float: left;
+    padding: 10px;
 }
 
 /* triangle */
@@ -35,20 +65,4 @@ html, body {
 
 .col {
   float: left;
-}
-
-#sidebar {
-  position: fixed;
-  width: 50px;
-  height: 100%;
-  background-color: #1b2126;
-  top: 0;
-  right: 0;
-  cursor: pointer;
-}
-
-.sideways {
-  margin-top: 40px;
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
 }

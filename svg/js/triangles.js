@@ -38,7 +38,7 @@
         height: 500,
         cols: 20,
         rows: 20,
-        minTriangleLength: 4,
+        minTriangleLength: 8,
 
         updateOnResize: true,
 
@@ -67,26 +67,35 @@
      * Main method to initialize and draw svg
      */
     function loadSvg(svg) {
-        initMatrix();
         initRandomColorsArray();
-        appendTriangles(svg);
+        initMatrix(svg);
+        bindHoverTriangle();
     }
 
     /*
      * Initialise matrix with newly created triangle divs
      */
-    function initMatrix() {
+    function initMatrix(svg) {
         matrix = [];
+        svg.clear();
 
-        for (var i = 0; i < settings.cols; i++) {
+        var tWidth = settings.width / settings.cols;
+        var tHeight = settings.height / settings.rows;
+        var minLength = Math.floor(Math.min(tWidth, tHeight));
+
+        $(settings.cssSelector).width(settings.width).height(settings.height);
+
+        for (var col = 0; col < settings.cols; col++) {
             matrix.push([]);
-            matrix[i].push(new Array(settings.rows));
+            matrix[col].push(new Array(settings.rows));
 
-            for (var j = 0; j < settings.rows; j++) {
+            var g = svg.group();
+
+            for (var row = 0; row < settings.rows; row++) {
                 var baseColor = settings.baseColor;
                 var paintColor = settings.paintColor;
 
-                if (settings.borderColor && (i ==0 || j == 0 || i == settings.cols - 1 || j == settings.rows - 1)) {
+                if (settings.borderColor && (row ==0 || col == 0 || col == settings.cols - 1 || row == settings.rows - 1)) {
                     paintColor = settings.borderColor;
                 }
                 else if (settings.gradient) {
@@ -101,10 +110,10 @@
                         rgbTo = hexToRgb(settings.gradient.bottom);
 
                         if (settings.borderColor) {
-                            ratio = (j - 1) / (settings.rows - 2);
+                            ratio = (row - 1) / (settings.rows - 2);
                         }
                         else {
-                            ratio = j / settings.rows;
+                            ratio = row / settings.rows;
                         }
                     }
                     else if (settings.gradient.left) {
@@ -112,10 +121,10 @@
                         rgbTo = hexToRgb(settings.gradient.right);
 
                         if (settings.borderColor) {
-                            ratio = (i - 1) / (settings.cols);
+                            ratio = (col - 1) / (settings.cols);
                         }
                         else {
-                            ratio = i / settings.cols;
+                            ratio = col / settings.cols;
                         }
                     }
                     else if (settings.gradient.topLeft) {
@@ -123,10 +132,10 @@
                         rgbTo = hexToRgb(settings.gradient.bottomRight);
 
                         if (settings.borderColor) {
-                            ratio = (i + j - 2) / (settings.rows + settings.cols - 2);
+                            ratio = (col + row - 2) / (settings.cols + settings.rows - 2);
                         }
                         else {
-                            ratio = (i + j) / (settings.rows + settings.cols);
+                            ratio = (col + row) / (settings.cols + settings.rows);
                         }
                     }
 
@@ -151,7 +160,18 @@
                     }
                 }
 
-                matrix[i][j] = [baseColor, paintColor];
+                var ox = col * minLength;
+                var oy = row * minLength;
+
+                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
+                var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
+
+                var g2 = svg.group(g, {class: 'square'});
+
+                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
+                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
+
+                matrix[col][row] = g2;
             }
         }
     };
@@ -174,28 +194,55 @@
         }
     };
 
-    /*
-     Main methods for appending the triangle divs
-     */
-    function appendTriangles(svg) {
+    function initMatrixWithArray(imageDataArr, width, height) {
+        matrix = [];
+        var svg = $(settings.cssSelector).svg('get');
+        svg.clear();
 
-        var tWidth = settings.width / settings.cols;
-        var tHeight = settings.height / settings.rows;
-        var minLength = Math.floor(Math.min(tWidth, tHeight));
+        settings.width = width ;
+        settings.height = height;
 
-//        $(settings.cssSelector).width(minLength * settings.cols).height(minLength * settings.rows);
+        settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
+        settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
+
+        while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
+            settings.cols--;
+        }
+        while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
+            settings.rows--;
+        }
+
+        var stepX = Math.floor(settings.width / settings.cols);
+        var stepY = Math.floor(settings.height / settings.rows);
+
+        var minLength = Math.min(stepX, stepY);
+
         $(settings.cssSelector).width(settings.width).height(settings.height);
 
         for (var col = 0; col < settings.cols; col++) {
+            matrix.push([]);
+            matrix[col].push(new Array(settings.rows));
+
+            var g = svg.group();
+
             for (var row = 0; row < settings.rows; row++) {
+                var inpos = ((col * stepX) * 4) + ((row * stepY) * settings.width * 4); // *4 for 4 ints per pixel
+
+                var baseColor = settings.baseColor;
+                var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
+
                 var ox = col * minLength;
                 var oy = row * minLength;
 
                 var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                svg.polygon(bases, {fill: matrix[col][row][0]});
-                svg.polygon(paints, {fill: matrix[col][row][1]});
+                var g2 = svg.group(g, {class: 'square'});
+
+                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
+                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
+
+                matrix[col][row] = g2;
             }
         }
     };
@@ -296,12 +343,20 @@
             // Selectors and variables
             settings = extend(defaults, options || {}); // Merge user options with defaults
 
-            $('#sidebar').hover(function() {
-                unbindHoverTriangle();
+            $('#horizontal').hover(function() {
+                triangles.fadeOutHorizontal();
+            }, function() {
+                triangles.fadeInHorizontal();
+            });
+            $('#vertical').hover(function() {
                 triangles.fadeOutVertical();
             }, function() {
-                unbindHoverTriangle();
                 triangles.fadeInVertical();
+            });
+            $('#diagonal').hover(function() {
+                triangles.fadeOutDiagonal();
+            }, function() {
+                triangles.fadeInDiagonal();
             });
 
             $(settings.cssSelector).svg({onLoad: loadSvg});
@@ -361,45 +416,6 @@
         }
     };
 
-    function initMatrixWithArray(imageDataArr, width, height) {
-        matrix = [];
-
-        settings.width = width ;
-        settings.height = height;
-
-        settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
-        settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
-
-        while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
-            settings.cols--;
-        }
-        while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
-            settings.rows--;
-        }
-
-        var stepX = Math.floor(settings.width / settings.cols);
-        var stepY = Math.floor(settings.height / settings.rows);
-
-        for (var i = 0; i < settings.cols; i++) {
-            matrix.push([]);
-            matrix[i].push(new Array(settings.rows));
-
-            for (var j = 0; j < settings.rows; j++) {
-                var inpos = ((i * stepX) * 4) + ((j * stepY) * settings.width * 4); // *4 for 4 ints per pixel
-
-                var baseColor = settings.baseColor;
-                var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
-
-                matrix[i][j] = [baseColor, paintColor];
-            }
-        }
-
-        $(settings.cssSelector).width(settings.width).height(settings.height);
-        var svg = $(settings.cssSelector).svg('get');
-        svg.clear();
-        appendTriangles(svg);
-    };
-
     function cancel(event) {
         if(event.preventDefault) {
             event.preventDefault();
@@ -411,22 +427,15 @@
      */
     function bindHoverTriangle() {
         if (settings.onMouseEnter) {
-            $(settings.cssSelector + ' .triangle').mouseenter(
+            $(settings.cssSelector + ' polygon.paint').mouseenter(
                 settings.onMouseEnter
             );
         }
         if (settings.onMouseLeave) {
-            $(settings.cssSelector + ' .triangle').mouseleave(
+            $(settings.cssSelector + ' polygon.paint').mouseleave(
                 settings.onMouseLeave
             );
         }
-    }
-
-    /**
-     * Unbind mouseenter and mouseleave event on the triangles
-     */
-    function unbindHoverTriangle() {
-        $(settings.cssSelector + ' .triangle').unbind('mouseenter mouseleave');
     }
 
     triangles.fadeOutHorizontal = function() {
@@ -442,19 +451,15 @@
      */
     function fadeHorizontal(toOpacity) {
 
-        (function fadeHorizontal(col) {
+        (function animateFadeHorizontal(col) {
             if (!matrix[col] || !matrix[col][0]) {
                 return;
             }
 
             $(matrix[col][0]).parent().animate({
                 opacity: toOpacity
-            }, 100, function() {
-                fadeHorizontal(col + 1);
-
-                if (toOpacity == 1 && col == settings.cols - 1) {
-                    bindHoverTriangle();
-                }
+            }, 10, function() {
+                animateFadeHorizontal(col + 1);
             });
         })(0);
     };
@@ -473,24 +478,23 @@
     function fadeVertical(toOpacity) {
 
         (function animateFadeVertical(row) {
-
-            var childs = $(settings.cssSelector + ' .col .triangle:nth-child(' + row + ')');
-            if (!childs || childs.length === 0) {
+            if (row >= matrix[0].length) {
                 return;
             }
 
-            childs.animate({
-                opacity: toOpacity
-            }, 100, function() {
-                if (this == childs[0]) {
-                    animateFadeVertical(row + 1);
-                }
+            for (var col = 0; col < matrix.length; col++) {
+                (function animate(col) {
+                    $(matrix[col][row]).animate({
+                        opacity: toOpacity
+                    }, 10, function() {
+                        if (col == matrix.length - 1) {
+                            animateFadeVertical(row + 1);
+                        }
+                    })
+                })(col);
+            }
 
-                if (toOpacity == 1 && row == settings.rows - 1 && this == childs[childs.length - 1]) {
-                    bindHoverTriangle();
-                }
-            });
-        })(1);
+        })(0);
     };
 
     triangles.fadeOutDiagonal = function() {
@@ -514,16 +518,12 @@
 
             $(matrix[col][row]).animate({
                 opacity: toOpacity
-            }, 100, function() {
+            }, 10, function() {
 
                 animateFadeDiagonal(col, row + 1);
 
                 if (row === 0) {
                     animateFadeDiagonal(col + 1, row);
-                }
-
-                if (toOpacity == 1 && row == settings.rows - 1 && col == settings.cols - 1) {
-                    bindHoverTriangle();
                 }
             });
         })(0, 0);
