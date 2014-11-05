@@ -37,10 +37,23 @@
             borderColor: '#ddd',
             baseColor: 'white',
             updateOnResize: false,
+            initialOpacity: 0,
+
 //            gradient: { left: '#f00', right: '#000' },
+            onClick: function() { $(this).css('opacity', '0.3'); },
             onMouseEnter: function() { $(this).css('opacity', '0.5'); },
-            onMouseLeave: function() { $(this).css('opacity', '1'); }
-        });
+            onMouseLeave: function() { $(this).css('opacity', '1'); },
+
+            fadeOutHorizontalCallback: function callback() {
+                triangles.generate().fadeInHorizontal();
+            },
+            fadeOutVerticalCallback: function() {
+                triangles.generate().fadeInVertical();
+            },
+            fadeOutDiagonalCallback: function() {
+                triangles.generate({baseColor: 'white', gradient: { left: '#f00', right: '#000' }, initialOpacity: 0}).fadeInDiagonal();
+            }
+        }).fadeInDiagonal();
     }
 </script>
 

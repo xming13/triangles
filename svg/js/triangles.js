@@ -30,15 +30,17 @@
     var settings; // Plugin settings
     var matrix = []; // matrix to hold the triangles divs
     var _randomColorsArray = []; // sorted array for random colors and chance of selecting
+    var options = {};
 
     // Default settings
     var defaults = {
-        cssSelector: 'div.triangles',
+        cssSelector: 'svg.triangles',
         width: 500,
         height: 500,
         cols: 20,
         rows: 20,
         minTriangleLength: 8,
+        initialOpacity: 1,
 
         updateOnResize: true,
 
@@ -46,7 +48,7 @@
         baseColor: 'blue',
         paintColor: '#fff',
 
-        gradient: { topLeft: '#f00', bottomRight: '#0f0' },
+        //gradient: { topLeft: '#f00', bottomRight: '#0f0' },
 
         random: false,
         randomColors: {
@@ -55,8 +57,17 @@
             '#CCC': 0.6
         },
 
+        onClick: null,
         onMouseEnter: null,
-        onMouseLeave: null
+        onMouseLeave: null,
+
+        fadeInHorizontalCallback: null,
+        fadeInVerticalCallback: null,
+        fadeInDiagonalCallback: null,
+
+        fadeOutHorizontalCallback: function() { triangles.fadeInHorizontal(); },
+        fadeOutVerticalCallback: function() { triangles.fadeInVertical(); },
+        fadeOutDiagonalCallback: function() { triangles.fadeInDiagonal(); }
     };
 
     //
@@ -69,7 +80,7 @@
     function loadSvg(svg) {
         initRandomColorsArray();
         initMatrix(svg);
-        bindHoverTriangle();
+        bindTriangleEvent();
     }
 
     /*
@@ -166,7 +177,7 @@
                 var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                var g2 = svg.group(g, {class: 'square'});
+                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
 
                 svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
                 svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
@@ -237,7 +248,7 @@
                 var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                var g2 = svg.group(g, {class: 'square'});
+                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
 
                 svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
                 svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
@@ -245,6 +256,7 @@
                 matrix[col][row] = g2;
             }
         }
+        return this;
     };
 
     /**
@@ -328,46 +340,31 @@
      * @public
      * @param {Object} options User settings
      */
-    triangles.init = function(options) {
+    triangles.init = function(opt) {
 
         // feature test
         if (!supports) return;
 
-        var generate = function() {
-            // Destroy any existing initializations
-            triangles.destroy();
+        defaults.width = window.innerWidth;
+        defaults.height = window.innerHeight;
 
-            defaults.width = window.innerWidth;
-            defaults.height = window.innerHeight;
+        options = opt;
+        this.generate(options);
 
-            // Selectors and variables
-            settings = extend(defaults, options || {}); // Merge user options with defaults
-
-            $('#horizontal').hover(function() {
-                triangles.fadeOutHorizontal();
-            }, function() {
-                triangles.fadeInHorizontal();
-            });
-            $('#vertical').hover(function() {
-                triangles.fadeOutVertical();
-            }, function() {
-                triangles.fadeInVertical();
-            });
-            $('#diagonal').hover(function() {
-                triangles.fadeOutDiagonal();
-            }, function() {
-                triangles.fadeInDiagonal();
-            });
-
-            $(settings.cssSelector).svg({onLoad: loadSvg});
-        };
-
-        generate();
+        $('#horizontal').click(function() {
+            triangles.fadeOutHorizontal();
+        });
+        $('#vertical').click(function() {
+            triangles.fadeOutVertical();
+        });
+        $('#diagonal').click(function() {
+            triangles.fadeOutDiagonal();
+        });
 
         if (settings.updateOnResize) {
-            window.addEventListener('resize', function(event){
-                generate();
-            });
+//            window.addEventListener('resize', function(event){
+//                generate();
+//            });
         }
 
         var fileDrop = $('#filedrop');
@@ -375,7 +372,23 @@
         fileDrop.on('dragenter', cancel);
         fileDrop.on('dragexit', cancel);
         fileDrop.on('drop', dropFile);
+
+        return this;
     };
+
+    triangles.generate = function(opts) {
+        // Destroy any existing initializations
+        triangles.destroy();
+
+        // Selectors and variables
+        if (typeof opts === 'undefined') {
+            opts = options;
+        }
+        settings = extend(defaults, opts || {}); // Merge user options with defaults
+
+        $(settings.cssSelector).svg({onLoad: loadSvg});
+        return this;
+    }
 
     function dropFile(event) {
 
@@ -409,6 +422,9 @@
                 var imageData = context.getImageData(0, 0, width, height);
 
                 initMatrixWithArray(imageData, width, height);
+                if (settings.initialOpacity < 1) {
+                    triangles.fadeInDiagonal();
+                }
             }
         }
         else {
@@ -423,9 +439,9 @@
     }
 
     /**
-     * Bind mouseenter and mouseleave event on the triangles as specified in the settings
+     * Bind mouseenter, mouseleave and click event  as specified in the settings on the triangles
      */
-    function bindHoverTriangle() {
+    function bindTriangleEvent() {
         if (settings.onMouseEnter) {
             $(settings.cssSelector + ' polygon.paint').mouseenter(
                 settings.onMouseEnter
@@ -436,13 +452,20 @@
                 settings.onMouseLeave
             );
         }
+        if (settings.onClick) {
+            $(settings.cssSelector + 'polygon.paint').click(
+                settings.onClick
+            );
+        }
     }
 
     triangles.fadeOutHorizontal = function() {
         fadeHorizontal(0);
+        return this;
     };
     triangles.fadeInHorizontal = function() {
         fadeHorizontal(1);
+        return this;
     };
 
     /**
@@ -456,19 +479,41 @@
                 return;
             }
 
-            $(matrix[col][0]).parent().animate({
-                opacity: toOpacity
-            }, 10, function() {
-                animateFadeHorizontal(col + 1);
-            });
+            for (var row = 0; row < settings.rows; row++) {
+                (function animate(row) {
+                    $(matrix[col][row]).animate({
+                        opacity: toOpacity
+                    }, 10, function() {
+                        // last row
+                        if (row == settings.rows - 1) {
+                            // last column means this is the last animate
+                            // proceed to callback if exists
+                            if (col == settings.cols - 1) {
+                                if (toOpacity == 0 && settings.fadeOutHorizontalCallback) {
+                                    settings.fadeOutHorizontalCallback();
+                                }
+                                else if (toOpacity == 1 && settings.fadeInHorizontalCallback) {
+                                    settings.fadeInHorizontalCallback();
+                                }
+                            }
+                            // else animate next column
+                            else {
+                                animateFadeHorizontal(col + 1);
+                            }
+                        }
+                    })
+                })(row);
+            }
         })(0);
     };
 
     triangles.fadeOutVertical = function() {
         fadeVertical(0);
+        return this;
     };
     triangles.fadeInVertical = function() {
         fadeVertical(1);
+        return this;
     };
 
     /**
@@ -478,30 +523,45 @@
     function fadeVertical(toOpacity) {
 
         (function animateFadeVertical(row) {
-            if (row >= matrix[0].length) {
+            if (row >= settings.rows) {
                 return;
             }
 
-            for (var col = 0; col < matrix.length; col++) {
+            for (var col = 0; col < settings.cols; col++) {
                 (function animate(col) {
                     $(matrix[col][row]).animate({
                         opacity: toOpacity
                     }, 10, function() {
-                        if (col == matrix.length - 1) {
-                            animateFadeVertical(row + 1);
+                        // last column
+                        if (col == settings.cols - 1) {
+                            // last row means this is the last animate
+                            // proceed to callback if exists
+                            if (row == settings.rows - 1) {
+                                if (toOpacity == 0 && settings.fadeOutVerticalCallback) {
+                                    settings.fadeOutVerticalCallback();
+                                }
+                                else if (toOpacity == 1 && settings.fadeInVerticalCallback) {
+                                    settings.fadeInVerticalCallback();
+                                }
+                            }
+                            // else animate next row
+                            else {
+                                animateFadeVertical(row + 1);
+                            }
                         }
                     })
                 })(col);
             }
-
         })(0);
     };
 
     triangles.fadeOutDiagonal = function() {
         fadeDiagonal(0);
+        return this;
     };
     triangles.fadeInDiagonal = function() {
         fadeDiagonal(1);
+        return this;
     };
 
     /**
@@ -518,12 +578,25 @@
 
             $(matrix[col][row]).animate({
                 opacity: toOpacity
-            }, 10, function() {
+            }, 5, function() {
 
-                animateFadeDiagonal(col, row + 1);
+                // check if this is the last animate
+                // proceed to callback if exists
+                if (col == settings.cols - 1 && row == settings.rows - 1) {
+                    if (toOpacity == 0 && settings.fadeOutDiagonalCallback) {
+                        settings.fadeOutDiagonalCallback();
+                    }
+                    else if (toOpacity == 1 && settings.fadeInDiagonalCallback) {
+                        settings.fadeInDiagonalCallback();
+                    }
+                }
+                // else animate next column/row
+                else {
+                    animateFadeDiagonal(col, row + 1);
 
-                if (row === 0) {
-                    animateFadeDiagonal(col + 1, row);
+                    if (row === 0) {
+                        animateFadeDiagonal(col + 1, row);
+                    }
                 }
             });
         })(0, 0);
