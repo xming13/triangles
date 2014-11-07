@@ -1,22 +1,27 @@
 (function( $ ) {
 
-    var settings; // Plugin settings
-    var matrix = []; // matrix to hold the triangles divs
-    var randomColorsArray = []; // sorted array for random colors and chance of selecting
-    var options = {};
     var svgObj;
     var svg;
 
     $.fn.triangles = function(opts) {
 
-        settings = $.extend( {}, $.fn.triangles.defaults, opts );
+        var settings = $.extend( {}, $.fn.triangles.defaults, opts );
 
-        svgObj = $(this);
-        this.svg();
-        svg = this.svg('get');
-        loadSvg();
+        $(this).each(function() {
+            svgObj = $(this);
+            $(this).svg();
+            svg = $(this).svg('get');
 
-        return this;
+
+            $(this).data('triangles', {
+                settings: settings,
+                fadeTriangles: fadeTriangles
+            });
+
+            loadSvg.call($(this).data('triangles'));
+        });
+
+        return $(this);
     };
 
 
@@ -24,16 +29,19 @@
      * Main method to initialize and draw svg
      */
     function loadSvg() {
-        initRandomColorsArray();
-        initMatrix();
-        bindTriangleEvent();
+        initRandomColorsArray.call(this);
+        initMatrix.call(this);
+        bindTriangleEvent.call(this);
     }
 
     /*
      * Initialise matrix with newly created triangle divs
      */
     function initMatrix() {
-        matrix = [];
+
+        var matrix = [];
+        var settings = this.settings;
+        var randomColorsArray = this.randomColorsArray;
         svg.clear();
 
         var tWidth = settings.width / settings.cols;
@@ -132,12 +140,17 @@
                 matrix[col][row] = g2;
             }
         }
+
+        this.matrix = matrix;
     };
 
     /*
      Creates an array sorted by chance value from randomColors option
      */
     function initRandomColorsArray() {
+        var settings = this.settings;
+        var randomColorsArray = [];
+
         if (settings.randomColors) {
             randomColorsArray = sortObject(settings.randomColors);
             Object.keys(randomColorsArray).sort(function(a, b) {
@@ -149,11 +162,14 @@
                 sumChance += color['value'];
                 color['value'] = sumChance;
             });
+
+            this.randomColorsArray = randomColorsArray;
         }
     };
 
     function initMatrixWithArray(imageDataArr, width, height) {
-        matrix = [];
+        var matrix = [];
+        var settings = this.settings;
         var svg = this.svg('get');
         svg.clear();
 
@@ -210,6 +226,7 @@
      * Bind mouseenter, mouseleave and click event  as specified in the settings on the triangles
      */
     function bindTriangleEvent() {
+        var settings = this.settings;
         $('polygon.paint', svg.root()).on({
             'click': settings.onClick,
             'mouseenter': settings.onMouseEnter,
@@ -217,13 +234,24 @@
         });
     }
 
-    $.fn.triangles.fadeOutHorizontal = function() {
-        fadeHorizontal(0);
-        return this;
-    };
-    $.fn.triangles.fadeInHorizontal = function() {
-        fadeHorizontal(1);
-        return this;
+    function fadeTriangles(direction, toOpacity) {
+        if (typeof toOpacity === 'undefined') {
+            toOpacity = 0;
+        }
+
+        switch(direction) {
+            case 'horizontal':
+                fadeHorizontal.call(this, toOpacity);
+                break;
+            case 'vertical':
+                fadeVertical.call(this, toOpacity);
+                break;
+            case 'diagonal':
+            default:
+                fadeDiagonal.call(this, toOpacity);
+        }
+
+        return $(this);
     };
 
     /**
@@ -231,6 +259,10 @@
      * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
      */
     function fadeHorizontal(toOpacity) {
+
+        var self = this;
+        var matrix = self.matrix;
+        var settings = self.settings;
 
         (function animateFadeHorizontal(col) {
             if (!matrix[col] || !matrix[col][0]) {
@@ -248,10 +280,10 @@
                             // proceed to callback if exists
                             if (col == settings.cols - 1) {
                                 if (toOpacity == 0 && settings.fadeOutHorizontalCallback) {
-                                    settings.fadeOutHorizontalCallback();
+                                    settings.fadeOutHorizontalCallback.call(self);
                                 }
                                 else if (toOpacity == 1 && settings.fadeInHorizontalCallback) {
-                                    settings.fadeInHorizontalCallback();
+                                    settings.fadeInHorizontalCallback.call(self);
                                 }
                             }
                             // else animate next column
@@ -265,20 +297,15 @@
         })(0);
     };
 
-    $.fn.triangles.fadeOutVertical = function() {
-        fadeVertical(0);
-        return this;
-    };
-    $.fn.triangles.fadeInVertical = function() {
-        fadeVertical(1);
-        return this;
-    };
-
     /**
      * Fades triangles from top to bottom
      * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
      */
     function fadeVertical(toOpacity) {
+
+        var self = this;
+        var matrix = self.matrix;
+        var settings = self.settings;
 
         (function animateFadeVertical(row) {
             if (row >= settings.rows) {
@@ -296,10 +323,10 @@
                             // proceed to callback if exists
                             if (row == settings.rows - 1) {
                                 if (toOpacity == 0 && settings.fadeOutVerticalCallback) {
-                                    settings.fadeOutVerticalCallback();
+                                    settings.fadeOutVerticalCallback.call(self);
                                 }
                                 else if (toOpacity == 1 && settings.fadeInVerticalCallback) {
-                                    settings.fadeInVerticalCallback();
+                                    settings.fadeInVerticalCallback.call(self);
                                 }
                             }
                             // else animate next row
@@ -313,20 +340,15 @@
         })(0);
     };
 
-    $.fn.triangles.fadeOutDiagonal = function() {
-        fadeDiagonal(0);
-        return this;
-    };
-    $.fn.triangles.fadeInDiagonal = function() {
-        fadeDiagonal(1);
-        return this;
-    };
-
     /**
      * Fades triangles from top left to bottom right
      * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
      */
     function fadeDiagonal(toOpacity) {
+
+        var self = this;
+        var matrix = self.matrix;
+        var settings = self.settings;
 
         (function animateFadeDiagonal(col, row) {
 
@@ -342,10 +364,10 @@
                 // proceed to callback if exists
                 if (col == settings.cols - 1 && row == settings.rows - 1) {
                     if (toOpacity == 0 && settings.fadeOutDiagonalCallback) {
-                        settings.fadeOutDiagonalCallback();
+                        settings.fadeOutDiagonalCallback.call(self);
                     }
                     else if (toOpacity == 1 && settings.fadeInDiagonalCallback) {
-                        settings.fadeInDiagonalCallback();
+                        settings.fadeInDiagonalCallback.call(self);
                     }
                 }
                 // else animate next column/row
@@ -502,8 +524,8 @@
         fadeInVerticalCallback: function() {},
         fadeInDiagonalCallback: function() {},
 
-        fadeOutHorizontalCallback: $.fn.triangles.fadeInHorizontal,
-        fadeOutVerticalCallback: function() { triangles.fadeInVertical(); },
-        fadeOutDiagonalCallback: function() { triangles.fadeInDiagonal(); }
+        fadeOutHorizontalCallback: function() { fadeTriangles.call(this, 'horizontal', 1); },
+        fadeOutVerticalCallback: function() { fadeTriangles.call(this, 'vertical', 1); },
+        fadeOutDiagonalCallback: function() { fadeTriangles.call(this, 'diagonal', 1); }
     };
 }( jQuery ));

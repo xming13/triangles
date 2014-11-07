@@ -16,51 +16,50 @@
     <div id="diagonal" class="sideways">Diagonal</div>
 </div>
 
-
 <div class="content">
     <div class="default">
         <h1>Default</h1>
-        <svg id="triangle-default"></svg>
+        <svg id="triangles-default" class="triangles"></svg>
     </div>
 
     <div class="sample">
         <h1>Random - Default</h1>
-        <svg id="triangle-random-default"></svg>
+        <svg id="triangles-random-default" class="triangles"></svg>
 
         <h1>Random - Custom</h1>
-        <svg id="triangle-random-custom"></svg>
+        <svg id="triangles-random-custom" class="triangles"></svg>
     </div>
 
     <div class="sample">
         <h1>Colour - Sample 1</h1>
-        <svg id="triangle-color-sample1"></svg>
+        <svg id="triangles-color-sample1" class="triangles"></svg>
 
         <h1>Colour - Sample 2</h1>
-        <svg id="triangle-color-sample2"></svg>
+        <svg id="triangles-color-sample2" class="triangles"></svg>
     </div>
 
     <div class="sample">
         <h1>Gradient - Sample 1</h1>
-        <svg id="triangle-gradient-sample1"></svg>
+        <svg id="triangles-gradient-sample1" class="triangles"></svg>
 
         <h1>Gradient - Sample 2</h1>
-        <svg id="triangle-gradient-sample2"></svg>
+        <svg id="triangles-gradient-sample2" class="triangles"></svg>
     </div>
 
     <div class="sample">
         <h1>Size - Small 1</h1>
-        <svg id="triangle-size-small1"></svg>
+        <svg id="triangles-size-small1" class="triangles"></svg>
 
         <h1>Size - Small 2</h1>
-        <svg id="triangle-size-small2"></svg>
+        <svg id="triangles-size-small2" class="triangles"></svg>
     </div>
 
     <div class="sample">
         <h1>Size - Big 1</h1>
-        <svg id="triangle-size-big1"></svg>
+        <svg id="triangles-size-big1" class="triangles"></svg>
 
         <h1>Size - Big 2</h1>
-        <svg id="triangle-size-big2"></svg>
+        <svg id="triangles-size-big2" class="triangles"></svg>
     </div>
 </div>
 
@@ -74,11 +73,11 @@
 <script type="text/javascript" src="js/triangles.js"></script>
 <script>
     window.onload = function() {
-        $('#triangle-default').triangles();
+        $('#triangles-default').triangles();
 
-        $('#triangle-random-default').triangles({ random: true});
+        $('#triangles-random-default').triangles({ random: true});
 
-        $('#triangle-random-custom').triangles({
+        $('#triangles-random-custom').triangles({
             random: true,
             randomColors: {
                 '#9277AC': 1,
@@ -89,40 +88,40 @@
             }
         });
 
-        $('#triangle-color-sample1').triangles({
+        $('#triangles-color-sample1').triangles({
             baseColor: 'red',
             paintColor: '#ffacaa',
             borderColor: '#550200'
         });
 
-        $('#triangle-color-sample2').triangles({
+        $('#triangles-color-sample2').triangles({
             baseColor: '#DBEFD6',
             paintColor: '#A1EA8E',
             borderColor: '#4FDE2A'
         });
 
-        $('#triangle-gradient-sample1').triangles({
+        $('#triangles-gradient-sample1').triangles({
             gradient: {
                 topLeft: '#f00',
                 bottomRight: '#0f0'
             }
         });
 
-        $('#triangle-gradient-sample2').triangles({
+        $('#triangles-gradient-sample2').triangles({
             gradient: {
                 left: '#f00',
                 right: '#f0f'
             }
         });
 
-        $('#triangle-size-small1').triangles({
+        $('#triangles-size-small1').triangles({
             width: 100,
             height: 100,
             rows: 5,
             cols: 5
         });
 
-        $('#triangle-size-small2').triangles({
+        $('#triangles-size-small2').triangles({
             width: 100,
             height: 100,
             rows: 20,
@@ -130,18 +129,36 @@
         });
 
 
-        $('#triangle-size-big1').triangles({
+        $('#triangles-size-big1').triangles({
             width: 250,
             height: 250,
             rows: 10,
             cols: 10
         });
 
-        $('#triangle-size-big2').triangles({
+        $('#triangles-size-big2').triangles({
             width: 250,
             height: 250,
             rows: 50,
             cols: 50
+        });
+
+        $("#horizontal").click(function() {
+            $(".triangles").each(function() {
+                $(this).data('triangles').fadeTriangles('horizontal');
+            });
+        });
+
+        $("#vertical").click(function() {
+            $(".triangles").each(function() {
+                $(this).data('triangles').fadeTriangles('vertical');
+            });
+        });
+
+        $("#diagonal").click(function() {
+            $(".triangles").each(function() {
+                $(this).data('triangles').fadeTriangles('diagonal');
+            });
         });
     }
 </script>
