@@ -1,24 +1,18 @@
 (function( $ ) {
 
-    var svgObj;
-    var svg;
-
     $.fn.triangles = function(opts) {
 
         var settings = $.extend( {}, $.fn.triangles.defaults, opts );
 
         $(this).each(function() {
-            svgObj = $(this);
             $(this).svg();
-            svg = $(this).svg('get');
-
 
             $(this).data('triangles', {
                 settings: settings,
                 fadeTriangles: fadeTriangles
             });
 
-            loadSvg.call($(this).data('triangles'));
+            loadSvg.call($(this));
         });
 
         return $(this);
@@ -39,8 +33,10 @@
     function initMatrix() {
 
         var matrix = [];
-        var settings = this.settings;
-        var randomColorsArray = this.randomColorsArray;
+        var data = this.data('triangles');
+        var settings = data.settings;
+        var randomColorsArray = data.randomColorsArray;
+        var svg = $(this).svg('get');
         svg.clear();
 
         var tWidth = settings.width / settings.cols;
@@ -48,7 +44,12 @@
         var minLength = Math.floor(Math.min(tWidth, tHeight));
 
         svg.width(settings.width);
-        svgObj.width(settings.width).height(settings.height);
+        this.width(settings.width).height(settings.height);
+
+        if (settings.image) {
+            convertDataURLToImageData.call(this, settings.image, initMatrixWithImageData);
+            return;
+        }
 
         for (var col = 0; col < settings.cols; col++) {
             matrix.push([]);
@@ -118,7 +119,7 @@
                     var random = Math.random() * randomColorsArray[randomColorsArray.length - 1]['value'];
 
                     for (var k = 0; k < randomColorsArray.length; k++) {
-                        if (randomColorsArray[k]['value'] > random) {
+                        if (randomColorsArray[k]['value'] >= random) {
                             paintColor = randomColorsArray[k]['key'];
                             break;
                         }
@@ -140,14 +141,15 @@
             }
         }
 
-        this.matrix = matrix;
+        data.matrix = matrix;
     };
 
     /*
      Creates an array sorted by chance value from randomColors option
      */
     function initRandomColorsArray() {
-        var settings = this.settings;
+        var data = this.data('triangles');
+        var settings = data.settings;
         var randomColorsArray = [];
 
         if (settings.randomColors) {
@@ -162,19 +164,17 @@
                 color['value'] = sumChance;
             });
 
-            this.randomColorsArray = randomColorsArray;
+            data.randomColorsArray = randomColorsArray;
         }
     };
 
-    function initMatrixWithArray(imageDataArr, width, height) {
+    function initMatrixWithImageData(imageDataArr, width, height) {
 
-        this.triangles();
-        this.svg();
+        var data = this.data('triangles');
+        var matrix = data.matrix = [];
+        var settings = data.settings;
+
         var svg = this.svg('get');
-
-        var matrix = [];
-        var settings = this.data('triangles').settings;
-
         svg.clear();
 
         settings.width = width ;
@@ -224,8 +224,6 @@
             }
         }
 
-        this.matrix = matrix;
-
         return this;
     };
 
@@ -233,8 +231,8 @@
      * Bind mouseenter, mouseleave and click event  as specified in the settings on the triangles
      */
     function bindTriangleEvent() {
-        var settings = this.settings;
-        $('polygon.paint', svg.root()).on({
+        var settings = this.data('triangles').settings;
+        $('polygon.paint', this.svg('get').root()).on({
             'click': settings.onClick,
             'mouseenter': settings.onMouseEnter,
             'mouseleave': settings.onMouseLeave
@@ -527,6 +525,9 @@
 
     function fileUploaded(event) {
         if(event.target.result.match(/^data:image/)) {
+
+            console.log(event.target.result);
+
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
 
@@ -540,7 +541,7 @@
 
                 var imageData = context.getImageData(0, 0, width, height);
 
-                initMatrixWithArray.call($("#generated"), imageData, width, height);
+                initMatrixWithImageData.call($("#generated"), imageData, width, height);
             }
         }
         else {
@@ -551,6 +552,44 @@
     function cancel(event) {
         if(event.preventDefault) {
             event.preventDefault();
+        }
+    }
+
+    function convertDataURLToImageData(dataURL, callback) {
+        var self = this;
+        if (dataURL !== undefined && dataURL !== null) {
+            var canvas, context, image;
+            canvas = document.createElement('canvas');
+            context = canvas.getContext('2d');
+            image = new Image();
+            image.addEventListener('load', function(){
+                canvas.width = image.width;
+                canvas.height = image.height;
+                context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                callback.call(self, context.getImageData(0, 0, canvas.width, canvas.height), image.width, image.height);
+            }, false);
+
+            if (dataURL.toLowerCase().indexOf('http://') == 0 || dataURL.toLowerCase().indexOf('https://') == 0 || dataURL.indexOf('//') == 0) {
+                var x = new XMLHttpRequest();
+                x.open('GET', '//cors-anywhere.herokuapp.com/' + dataURL);
+                x.responseType = 'blob';
+                x.onload = function() {
+                    var blob = x.response;
+                    var fr = new FileReader();
+                    fr.onloadend = function() {
+                        var dataUrl = fr.result;
+                        image.src = dataUrl;
+                    };
+                    fr.readAsDataURL(blob);
+                };
+                x.onerror = function() {
+                    console.log('A network error occurred when sending XMLHttpRequest');
+                };
+                x.send();
+            }
+            else {
+                image.src = dataURL;
+            }
         }
     }
 
