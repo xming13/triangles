@@ -24,7 +24,6 @@
         return $(this);
     };
 
-
     /*
      * Main method to initialize and draw svg
      */
@@ -168,9 +167,14 @@
     };
 
     function initMatrixWithArray(imageDataArr, width, height) {
-        var matrix = [];
-        var settings = this.settings;
+
+        this.triangles();
+        this.svg();
         var svg = this.svg('get');
+
+        var matrix = [];
+        var settings = this.data('triangles').settings;
+
         svg.clear();
 
         settings.width = width ;
@@ -219,6 +223,9 @@
                 matrix[col][row] = g2;
             }
         }
+
+        this.matrix = matrix;
+
         return this;
     };
 
@@ -492,6 +499,60 @@
         });
         return arr;
     };
+
+    function initFileUpload() {
+        var fileDrop = $('#filedrop');
+        fileDrop.on('dragover', cancel);
+        fileDrop.on('dragenter', cancel);
+        fileDrop.on('dragexit', cancel);
+        fileDrop.on('drop', dropFile);
+    };
+    initFileUpload();
+
+    function dropFile(event) {
+
+        event.stopPropagation();
+        event.preventDefault();
+
+        // query what was dropped
+        var files = event.originalEvent.dataTransfer.files;
+
+        // if we have something
+        if(files.length) {
+            var fileReader 			= new FileReader();
+            fileReader.onloadend	= fileUploaded;
+            fileReader.readAsDataURL(files[0]);
+        }
+    };
+
+    function fileUploaded(event) {
+        if(event.target.result.match(/^data:image/)) {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            var img = new Image();
+            img.src = event.target.result;
+            img.onload = function () {
+                var width = canvas.width = img.width;
+                var height = canvas.height = img.height;
+
+                context.drawImage(img,0,0,img.width,img.height);
+
+                var imageData = context.getImageData(0, 0, width, height);
+
+                initMatrixWithArray.call($("#generated"), imageData, width, height);
+            }
+        }
+        else {
+            alert("Only image file is supported!");
+        }
+    };
+
+    function cancel(event) {
+        if(event.preventDefault) {
+            event.preventDefault();
+        }
+    }
 
     $.fn.triangles.defaults = {
         width: 200,
