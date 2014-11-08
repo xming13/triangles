@@ -308,12 +308,14 @@
                                 if (callback) {
                                     callback.call(self);
                                 }
-//                                if (toOpacity == 0 && settings.fadeOutHorizontalCallback) {
-//                                    settings.fadeOutHorizontalCallback.call(self);
-//                                }
-//                                else if (toOpacity == 1 && settings.fadeInHorizontalCallback) {
-//                                    settings.fadeInHorizontalCallback.call(self);
-//                                }
+                                else {
+                                    if (toOpacity == 0 && settings.fadeOutHorizontalCallback) {
+                                        settings.fadeOutHorizontalCallback.call(self);
+                                    }
+                                    else if (toOpacity == 1 && settings.fadeInHorizontalCallback) {
+                                        settings.fadeInHorizontalCallback.call(self);
+                                    }
+                                }
                             }
                             // else animate next column
                             else {
@@ -353,12 +355,14 @@
                                 if (callback) {
                                     callback.call(self);
                                 }
-//                                if (toOpacity == 0 && settings.fadeOutVerticalCallback) {
-//                                    settings.fadeOutVerticalCallback.call(self);
-//                                }
-//                                else if (toOpacity == 1 && settings.fadeInVerticalCallback) {
-//                                    settings.fadeInVerticalCallback.call(self);
-//                                }
+                                else {
+                                    if (toOpacity == 0 && settings.fadeOutVerticalCallback) {
+                                        settings.fadeOutVerticalCallback.call(self);
+                                    }
+                                    else if (toOpacity == 1 && settings.fadeInVerticalCallback) {
+                                        settings.fadeInVerticalCallback.call(self);
+                                    }
+                                }
                             }
                             // else animate next row
                             else {
@@ -386,12 +390,14 @@
                 if (callback) {
                     callback.call(self);
                 }
-//               if (toOpacity == 0) {
-//                   settings.fadeOutAllCallback.call(self);
-//               }
-//                else if (toOpacity == 1) {
-//                    settings.fadeInAllCallback.call(self);
-//                }
+                else {
+                   if (toOpacity == 0) {
+                       settings.fadeOutAllCallback.call(self);
+                   }
+                    else if (toOpacity == 1) {
+                        settings.fadeInAllCallback.call(self);
+                    }
+                }
             });
         })();
     }
@@ -419,12 +425,14 @@
                     if (callback) {
                         callback.call(self);
                     }
-//                    if (toOpacity == 0 && settings.fadeOutDiagonalCallback) {
-//                        settings.fadeOutDiagonalCallback.call(self);
-//                    }
-//                    else if (toOpacity == 1 && settings.fadeInDiagonalCallback) {
-//                        settings.fadeInDiagonalCallback.call(self);
-//                    }
+                    else {
+                        if (toOpacity == 0 && settings.fadeOutDiagonalCallback) {
+                            settings.fadeOutDiagonalCallback.call(self);
+                        }
+                        else if (toOpacity == 1 && settings.fadeInDiagonalCallback) {
+                            settings.fadeInDiagonalCallback.call(self);
+                        }
+                    }
                 }
                 // else animate next column/row
                 else {
