@@ -271,6 +271,9 @@
             case 'vertical':
                 fadeVertical.call(this, toOpacity);
                 break;
+            case 'all':
+                fadeAll.call(this, toOpacity);
+                break;
             case 'diagonal':
             default:
                 fadeDiagonal.call(this, toOpacity);
@@ -296,9 +299,7 @@
 
             for (var row = 0; row < settings.rows; row++) {
                 (function animate(row) {
-                    $(matrix[col][row]).animate({
-                        opacity: toOpacity
-                    }, 10, function() {
+                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
                         // last row
                         if (row == settings.rows - 1) {
                             // last column means this is the last animate
@@ -339,9 +340,7 @@
 
             for (var col = 0; col < settings.cols; col++) {
                 (function animate(col) {
-                    $(matrix[col][row]).animate({
-                        opacity: toOpacity
-                    }, 10, function() {
+                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
                         // last column
                         if (col == settings.cols - 1) {
                             // last row means this is the last animate
@@ -366,6 +365,32 @@
     };
 
     /**
+     * Fades all triangles
+     * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
+     */
+    function fadeAll(toOpacity) {
+        var self = this;
+        var matrix = self.matrix;
+        var settings = self.settings;
+
+        (function animateFadeAll() {
+            $.each(matrix, function(col, colElem) {
+                $.each(colElem, function(row, elem) {
+                    $(elem).fadeTo(1000, toOpacity, function() {
+                        if (col == settings.cols - 1 && row == settings.rows - 1) {
+                            if (toOpacity == 0) {
+                                settings.fadeOutAllCallback.call(self);
+                            }
+                            else if (toOpacity == 1) {
+                                settings.fadeInAllCallback.call(self);
+                            }
+                        }
+                    });
+                });
+            });
+        })();
+    }
+    /**
      * Fades triangles from top left to bottom right
      * @param {int} toOpacity the opacity to animate to, possible value is in [0,1]
      */
@@ -381,9 +406,7 @@
                 return;
             }
 
-            $(matrix[col][row]).animate({
-                opacity: toOpacity
-            }, 5, function() {
+            $(matrix[col][row]).fadeTo(1, toOpacity, function() {
 
                 // check if this is the last animate
                 // proceed to callback if exists
@@ -617,7 +640,7 @@
         height: 200,
         cols: 20,
         rows: 20,
-        minTriangleLength: 5,
+        minTriangleLength: 2,
         initialOpacity: 1,
 
         updateOnResize: true,
@@ -642,9 +665,11 @@
         fadeInHorizontalCallback: function() {},
         fadeInVerticalCallback: function() {},
         fadeInDiagonalCallback: function() {},
+        fadeInAllCallback: function() {},
 
         fadeOutHorizontalCallback: function() { fadeTriangles.call(this, 'horizontal', 1); },
         fadeOutVerticalCallback: function() { fadeTriangles.call(this, 'vertical', 1); },
-        fadeOutDiagonalCallback: function() { fadeTriangles.call(this, 'diagonal', 1); }
+        fadeOutDiagonalCallback: function() { fadeTriangles.call(this, 'diagonal', 1); },
+        fadeOutAllCallback: function() { fadeTriangles.call(this, 'all', 1); }
     };
 }( jQuery ));
