@@ -204,7 +204,27 @@
             var g = svg.group();
 
             for (var row = 0; row < settings.rows; row++) {
-                var inpos = ((col * stepX) * 4) + ((row * stepY) * settings.width * 4); // *4 for 4 ints per pixel
+                /*
+                 *             x0             x1
+                 *     ---------------------------------
+                 *     |    |    |    ||    |    |    ||
+                 *     ---------------------------------
+                 * y0  |    |rgba|    ||    |rgba|    || ...
+                 *     ---------------------------------
+                 *     |    |    |    ||    |    |    ||
+                 *     ---------------------------------
+                 *            .
+                 *            .
+                 *            .
+                 */
+                var x = Math.floor((col + 0.5) * stepX); // x0, x1...
+                var y = Math.floor((row + 0.5) * stepY); // y0, y1...
+
+                var inpos = (x + y * settings.width) * 4;
+                // x is the position from the left in a row
+                // y is the position from the top in a col
+                // y * settings gives the length of the rows
+                // *4 for 4 ints per pixel ie. r, g, b, a
 
                 var baseColor = settings.baseColor;
                 var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
@@ -526,8 +546,6 @@
     function fileUploaded(event) {
         if(event.target.result.match(/^data:image/)) {
 
-            console.log(event.target.result);
-
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
 
@@ -541,6 +559,7 @@
 
                 var imageData = context.getImageData(0, 0, width, height);
 
+                $("#generated").triangles();
                 initMatrixWithImageData.call($("#generated"), imageData, width, height);
             }
         }
