@@ -57,6 +57,7 @@
         .btn-showhide-upload {
             float: right;
             margin-right: 10px;
+            cursor: pointer;
         }
 
         #filedrop {
@@ -68,7 +69,7 @@
             height: 100%;
         }
 
-        #triangle-image-upload-wrapper, #snippet-hidden {
+        #triangle-image-upload-wrapper, .snippet-hidden {
             display:none;
         }
     </style>
@@ -736,18 +737,9 @@ function fileUploaded(event) {
         });
 
         // Snippets
-        var snippetToggle = document.querySelector('#snippet-toggle');
-        var snippets = document.querySelectorAll('pre');
-
-        (function() {
-            snippetToggle.addEventListener('click', function () {
-                if (snippets) {
-                    for (var i = 0; i < snippets.length; i++) {
-                        snippets[i].classList.toggle('snippet-hidden');
-                    }
-                }
-            });
-        }());
+        $('#snippet-toggle').click(function() {
+            $('pre').toggleClass('snippet-hidden');
+        });
     }
 </script>
 <!-- endbuild -->
