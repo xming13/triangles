@@ -39,9 +39,17 @@
         var svg = $(this).svg('get');
         svg.clear();
 
-        var tWidth = settings.width / settings.cols;
-        var tHeight = settings.height / settings.rows;
-        var minLength = Math.floor(Math.min(tWidth, tHeight));
+        var minLength = 1;
+        if (settings.triangleLength > 0) {
+            settings.cols = Math.ceil(settings.width / settings.triangleLength);
+            settings.rows = Math.ceil(settings.height / settings.triangleLength);
+            minLength = settings.triangleLength;
+        }
+        else {
+            var tWidth = settings.width / settings.cols;
+            var tHeight = settings.height / settings.rows;
+            minLength = Math.floor(Math.min(tWidth, tHeight));
+        }
 
         svg.width(settings.width);
         this.width(settings.width).height(settings.height);
@@ -600,6 +608,7 @@
         height: 200,
         cols: 20,
         rows: 20,
+        triangleLength: -1,
         minTriangleLength: 5,
         initialOpacity: 1,
 
