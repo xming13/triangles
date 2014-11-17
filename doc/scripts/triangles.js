@@ -1,6 +1,6 @@
 (function( $ ) {
 
-    $.fn.triangles = function(opts) {
+    $.fn.triangles = function(opts, callback) {
 
         var settings = $.extend( {}, $.fn.triangles.defaults, opts );
 
@@ -12,7 +12,7 @@
                 fadeTriangles: fadeTriangles
             });
 
-            loadSvg.call($(this));
+            loadSvg.call($(this), callback);
         });
 
         return $(this);
@@ -21,10 +21,14 @@
     /*
      * Main method to initialize and draw svg
      */
-    function loadSvg() {
+    function loadSvg(callback) {
         initRandomColorsArray.call(this);
         initMatrix.call(this);
         bindTriangleEvent.call(this);
+
+        if (callback) {
+            callback.call($(this));
+        }
     }
 
     /*
@@ -38,6 +42,8 @@
         var randomColorsArray = data.randomColorsArray;
         var svg = $(this).svg('get');
         svg.clear();
+
+        $(this).css('backgroundColor', settings.baseColor);
 
         var minLength = 1;
         if (settings.triangleLength > 0) {
@@ -66,7 +72,6 @@
             var g = svg.group();
 
             for (var row = 0; row < settings.rows; row++) {
-                var baseColor = settings.baseColor;
                 var paintColor = settings.paintColor;
 
                 if (settings.borderColor && (row ==0 || col == 0 || col == settings.cols - 1 || row == settings.rows - 1)) {
@@ -137,15 +142,9 @@
                 var ox = col * minLength;
                 var oy = row * minLength;
 
-                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
-
-                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
-                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
-
-                matrix[col][row] = g2;
+                matrix[col][row] = svg.polygon(g, paints, {fill: paintColor, class: 'paint', opacity: settings.initialOpacity});
             }
         }
 
@@ -188,14 +187,20 @@
         settings.width = width ;
         settings.height = height;
 
-        settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
-        settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
-
-        while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
-            settings.cols--;
+        if (settings.triangleLength > 0) {
+            settings.cols = Math.ceil(settings.width / settings.triangleLength);
+            settings.rows = Math.ceil(settings.height / settings.triangleLength);
         }
-        while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
-            settings.rows--;
+        else {
+            settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
+            settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
+
+            while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
+                settings.cols--;
+            }
+            while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
+                settings.rows--;
+            }
         }
 
         var stepX = Math.floor(settings.width / settings.cols);
@@ -234,21 +239,14 @@
                 // y * settings gives the length of the rows
                 // *4 for 4 ints per pixel ie. r, g, b, a
 
-                var baseColor = settings.baseColor;
                 var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
 
                 var ox = col * minLength;
                 var oy = row * minLength;
 
-                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
-
-                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
-                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
-
-                matrix[col][row] = g2;
+                matrix[col][row] = svg.polygon(g, paints, {fill: paintColor, class: 'paint', opacity: settings.initialOpacity});
             }
         }
 
@@ -307,7 +305,7 @@
 
             for (var row = 0; row < settings.rows; row++) {
                 (function animate(row) {
-                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
+                    $(matrix[col][row]).fadeTo(1, toOpacity, function() {
                         // last row
                         if (row == settings.rows - 1) {
                             // last column means this is the last animate
@@ -353,7 +351,7 @@
 
             for (var col = 0; col < settings.cols; col++) {
                 (function animate(col) {
-                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
+                    $(matrix[col][row]).fadeTo(1, toOpacity, function() {
                         // last column
                         if (col == settings.cols - 1) {
                             // last row means this is the last animate
