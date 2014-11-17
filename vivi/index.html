@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Happy Birthday Vivi!</title>
+    <style>
+        body {
+            margin: 0 auto;
+            text-align: center;
+            background-color: #decec8;
+        }
+
+        .sidebar {
+            position: fixed;
+            width: 50px;
+            height: 100%;
+            background-color: #1b2126;
+            right: 0;
+            cursor: pointer;
+        }
+
+        .animate {
+            position: absolute;
+            left: -10px;
+            margin-top: 75px;
+            height: 22px;
+            transform: rotateZ(90deg);
+            -webkit-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            text-shadow: 0px 1px 0px rgba(0,0,0,0.5);
+            color: #FFFFFF;
+            font-family: Helvetica, Arial;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .colors {
+            height: 43px;
+        }
+        .colors span {
+            display: inline-block;
+            width: 142px;
+            height: 43px;
+            cursor: pointer;
+            -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+            -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+            box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+        }
+
+        .white {
+            background-color: #ffffff;
+        }
+        .white.hover {
+            background-color: #eeeeee;
+        }
+
+        .red {
+            background-color: #e51c23;
+        }
+        .red.hover {
+            background-color: #b9151b;
+        }
+
+        .orange {
+            background-color: #ff9800;
+        }
+        .orange.hover {
+            background-color: #cc7a00;
+        }
+
+        .yellow {
+            background-color: #ffe70f;
+        }
+        .yellow.hover {
+            background-color: #dbc500;
+        }
+
+        .green {
+            background-color: #4caf50;
+        }
+        .green.hover {
+            background-color: #3d8b40;
+        }
+
+        .blue {
+            background-color: #1690f3;
+        }
+        .blue.hover {
+            background-color: #0a75cc;
+        }
+
+        .indigo {
+            background-color: #3f51b5;
+        }
+        .indigo.hover {
+            background-color: #32408f;
+        }
+
+        .violet {
+            background-color: #673ab7;
+        }
+        .violet.hover {
+            background-color: #512e90;
+        }
+
+        .black {
+            background-color: #000000;
+        }
+        .black.hover {
+            background-color: #222222;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <span class="animate">Animate</span>
+</div>
+<div class="colors">
+    <span class="white"></span><span class="red"></span><span class="orange"></span><span class="yellow"></span><span class="green"></span><span class="blue"></span><span class="indigo"></span><span class="violet"></span><span class="black"></span>
+</div>
+<svg id="hello-kitty"></svg>
+<script src="../doc/scripts/jquery-2.1.1.min.js"></script>
+<script src="../doc/scripts/jquery.svg.min.js"></script>
+<script src="../doc/scripts/triangles.js"></script>
+<script>
+    $(document).ready(function() {
+
+        $('#hello-kitty').triangles({
+            image: 'hello-kitty.png',
+            baseColor: 'white',
+            width: 1280,
+            height: 720
+        });
+
+        var isAnimating = false;
+        var animateIndex = 0;
+
+        $('.colors span').each(function(index) {
+            var color = $(this).css('background-color');
+            $(this).hover(function() {
+                $('#hello-kitty').css('background-color', color);
+                $(this).addClass('hover');
+                animateIndex = index;
+
+            }, function() {
+                $(this).removeClass('hover');
+            });
+        });
+
+        $('.sidebar').hover(function() {
+            if (!isAnimating) {
+                isAnimating = true;
+                (function animate() {
+                    setTimeout(function() {
+                        if (isAnimating) {
+                            $($('.colors span')[animateIndex]).trigger('mouseleave');
+                            animateIndex = (animateIndex + 1) % $('.colors span').length;
+                            $($('.colors span')[animateIndex]).trigger('mouseenter');
+                            animate();
+                        }
+                    }, 500);
+                })();
+            }
+        }, function() {
+            isAnimating = false;
+            $('.colors span').removeClass('hover');
+        });
+    });
+</script>
+</body>
+</html>
