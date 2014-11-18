@@ -1,6 +1,6 @@
 (function( $ ) {
 
-    $.fn.triangles = function(opts, callback) {
+    $.fn.triangles = function(opts) {
 
         var settings = $.extend( {}, $.fn.triangles.defaults, opts );
 
@@ -12,7 +12,7 @@
                 fadeTriangles: fadeTriangles
             });
 
-            loadSvg.call($(this), callback);
+            loadSvg.call($(this));
         });
 
         return $(this);
@@ -21,14 +21,10 @@
     /*
      * Main method to initialize and draw svg
      */
-    function loadSvg(callback) {
+    function loadSvg() {
         initRandomColorsArray.call(this);
         initMatrix.call(this);
         bindTriangleEvent.call(this);
-
-        if (callback) {
-            callback.call($(this));
-        }
     }
 
     /*
@@ -43,19 +39,9 @@
         var svg = $(this).svg('get');
         svg.clear();
 
-        $(this).css('backgroundColor', settings.baseColor);
-
-        var minLength = 1;
-        if (settings.triangleLength > 0) {
-            settings.cols = Math.ceil(settings.width / settings.triangleLength);
-            settings.rows = Math.ceil(settings.height / settings.triangleLength);
-            minLength = settings.triangleLength;
-        }
-        else {
-            var tWidth = settings.width / settings.cols;
-            var tHeight = settings.height / settings.rows;
-            minLength = Math.floor(Math.min(tWidth, tHeight));
-        }
+        var tWidth = settings.width / settings.cols;
+        var tHeight = settings.height / settings.rows;
+        var minLength = Math.floor(Math.min(tWidth, tHeight));
 
         svg.width(settings.width);
         this.width(settings.width).height(settings.height);
@@ -72,6 +58,7 @@
             var g = svg.group();
 
             for (var row = 0; row < settings.rows; row++) {
+                var baseColor = settings.baseColor;
                 var paintColor = settings.paintColor;
 
                 if (settings.borderColor && (row ==0 || col == 0 || col == settings.cols - 1 || row == settings.rows - 1)) {
@@ -142,9 +129,15 @@
                 var ox = col * minLength;
                 var oy = row * minLength;
 
+                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                matrix[col][row] = svg.polygon(g, paints, {fill: paintColor, class: 'paint', opacity: settings.initialOpacity});
+                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
+
+                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
+                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
+
+                matrix[col][row] = g2;
             }
         }
 
@@ -187,20 +180,14 @@
         settings.width = width ;
         settings.height = height;
 
-        if (settings.triangleLength > 0) {
-            settings.cols = Math.ceil(settings.width / settings.triangleLength);
-            settings.rows = Math.ceil(settings.height / settings.triangleLength);
-        }
-        else {
-            settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
-            settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
+        settings.cols = Math.ceil(settings.width / settings.minTriangleLength);
+        settings.rows = Math.ceil(settings.height / settings.minTriangleLength);
 
-            while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
-                settings.cols--;
-            }
-            while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
-                settings.rows--;
-            }
+        while (Math.floor(settings.width / settings.cols) < settings.minTriangleLength) {
+            settings.cols--;
+        }
+        while (Math.floor(settings.height / settings.rows) < settings.minTriangleLength) {
+            settings.rows--;
         }
 
         var stepX = Math.floor(settings.width / settings.cols);
@@ -239,14 +226,21 @@
                 // y * settings gives the length of the rows
                 // *4 for 4 ints per pixel ie. r, g, b, a
 
+                var baseColor = settings.baseColor;
                 var paintColor = 'rgba(' + [imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++], imageDataArr.data[inpos++]].join(',') + ')';
 
                 var ox = col * minLength;
                 var oy = row * minLength;
 
+                var bases = [[ox, oy], [ox, oy + minLength], [ox + minLength, oy + minLength]];
                 var paints = [[ox, oy], [ox + minLength, oy], [ox + minLength, oy + minLength]];
 
-                matrix[col][row] = svg.polygon(g, paints, {fill: paintColor, class: 'paint', opacity: settings.initialOpacity});
+                var g2 = svg.group(g, {class: 'square', opacity: settings.initialOpacity});
+
+                svg.polygon(g2, paints, {fill: paintColor, class: 'paint'});
+                svg.polygon(g2, bases, {fill: baseColor, class: 'base'});
+
+                matrix[col][row] = g2;
             }
         }
 
@@ -305,7 +299,7 @@
 
             for (var row = 0; row < settings.rows; row++) {
                 (function animate(row) {
-                    $(matrix[col][row]).fadeTo(1, toOpacity, function() {
+                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
                         // last row
                         if (row == settings.rows - 1) {
                             // last column means this is the last animate
@@ -351,7 +345,7 @@
 
             for (var col = 0; col < settings.cols; col++) {
                 (function animate(col) {
-                    $(matrix[col][row]).fadeTo(1, toOpacity, function() {
+                    $(matrix[col][row]).fadeTo(10, toOpacity, function() {
                         // last column
                         if (col == settings.cols - 1) {
                             // last row means this is the last animate
@@ -397,9 +391,9 @@
                     callback.call(self);
                 }
                 else {
-                   if (toOpacity == 0) {
-                       settings.fadeOutAllCallback.call(self);
-                   }
+                    if (toOpacity == 0) {
+                        settings.fadeOutAllCallback.call(self);
+                    }
                     else if (toOpacity == 1) {
                         settings.fadeInAllCallback.call(self);
                     }
@@ -563,6 +557,62 @@
         return arr;
     };
 
+    function initFileUpload() {
+        var fileDrop = $('#filedrop');
+        fileDrop.on('dragover', cancel);
+        fileDrop.on('dragenter', cancel);
+        fileDrop.on('dragexit', cancel);
+        fileDrop.on('drop', dropFile);
+    };
+    initFileUpload();
+
+    function dropFile(event) {
+
+        event.stopPropagation();
+        event.preventDefault();
+
+        // query what was dropped
+        var files = event.originalEvent.dataTransfer.files;
+
+        // if we have something
+        if(files.length) {
+            var fileReader 			= new FileReader();
+            fileReader.onloadend	= fileUploaded;
+            fileReader.readAsDataURL(files[0]);
+        }
+    };
+
+    function fileUploaded(event) {
+        if(event.target.result.match(/^data:image/)) {
+
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            var img = new Image();
+            img.src = event.target.result;
+            img.onload = function () {
+                var width = canvas.width = img.width;
+                var height = canvas.height = img.height;
+
+                context.drawImage(img,0,0,img.width,img.height);
+
+                var imageData = context.getImageData(0, 0, width, height);
+
+                $("#generated").triangles();
+                initMatrixWithImageData.call($("#generated"), imageData, width, height);
+            }
+        }
+        else {
+            alert("Only image file is supported!");
+        }
+    };
+
+    function cancel(event) {
+        if(event.preventDefault) {
+            event.preventDefault();
+        }
+    }
+
     function convertDataURLToImageData(dataURL, callback) {
         var self = this;
         if (dataURL !== undefined && dataURL !== null) {
@@ -577,7 +627,7 @@
                 callback.call(self, context.getImageData(0, 0, canvas.width, canvas.height), image.width, image.height);
             }, false);
 
-            if (dataURL.toLowerCase().indexOf('http://') == 0 || dataURL.toLowerCase().indexOf('https://') == 0 || dataURL.indexOf('//') == 0) {
+            if (dataURL.toLowerCase().indexOf('http://') == 0 || dataURL.toLowerCase().indexOf('https://') == 0) {
                 var x = new XMLHttpRequest();
                 x.open('GET', '//cors-anywhere.herokuapp.com/' + dataURL);
                 x.responseType = 'blob';
@@ -606,7 +656,6 @@
         height: 200,
         cols: 20,
         rows: 20,
-        triangleLength: -1,
         minTriangleLength: 5,
         initialOpacity: 1,
 
