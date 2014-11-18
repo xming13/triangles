@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Triangles jquery plugin Documentation">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Triangles Jquery Plugin</title>
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="images/touch/chrome-touch-icon-192x192.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Web Starter Kit">
+    <link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+    <!-- Page styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <style>
+        main {
+            padding-bottom: 30px;
+        }
+
+        .navdrawer-container ul li a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .svg-wrapper {
+            clear: both;
+            min-height: 200px;
+        }
+    </style>
+</head>
+<body>
+<header class="app-bar promote-layer">
+    <div class="app-bar-container">
+        <button class="menu"><img src="images/hamburger.svg" alt="Menu"></button>
+        <h1 class="logo"><strong>Triangles Jquery Plugin</strong></h1>
+        <section class="app-bar-actions">
+            <!-- Put App Bar Buttons Here -->
+            <a href="index.html"><button><img src="images/icon.png" /></button></a>
+        </section>
+    </div>
+</header>
+
+<nav class="navdrawer-container promote-layer">
+    <h4>Navigation</h4>
+    <ul>
+        <li><a href="index.html" class="active">About</a></li>
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>About</h1>
+
+    <div class="g-medium--half g-wide--2">
+        <div class="svg-wrapper">
+            <svg id="triangles-default" class="triangles"></svg>
+        </div>
+    </div>
+    <div class="g-medium--half g-wide--2 g-wide--last g-medium--last">
+        <div class="svg-wrapper">
+            <svg id="triangles-random" class="triangles"></svg>
+        </div>
+    </div>
+
+    <p>
+        This is a jquery plugin that generates triangles pixel-like svg images.
+    </p>
+    <p>
+        Check out <a href="demo.html">Demo</a> for colours and love!
+    </p>
+
+    <h2>Inspiration</h2>
+
+    <p>
+        I came across <a href="https://github.com/michelle/triangles">michelle/triangles</a> on Github
+        (which comes with <a href="http://blog.michellebu.com/2013/03/21-nested-callbacks/">an inspiring story</a>)
+        and thought it was really cool!
+    </p>
+
+    <p>
+        I played with it and decided to made it into a jquery plugin.
+        Initially I mimic the original implementation and generate divs to make the triangles
+        before I switch to svg instead for better pixel precision.
+    </p>
+
+    <h2>Limitation</h2>
+
+    <p>
+        Admittedly this is the first time I make a jquery plugin and it isn't perfect.
+    </p>
+    <p>
+        Also, there is performance issue when there are too many triangles generated.
+    </p>
+    <p>
+        Any feedback and suggestion for improvement are welcomed. :)
+    </p>
+</main>
+
+<!-- build:js scripts/main.min.js -->
+<script src="scripts/main.min.js"></script>
+<script src="scripts/jquery-2.1.1.min.js"></script>
+<script src="scripts/jquery.svg.min.js"></script>
+<script src="scripts/triangles.js"></script>
+<script>
+    window.onload = function() {
+        $('#triangles-default').triangles();
+
+        $('#triangles-random').triangles({ random : true });
+    };
+</script>
+<!-- endbuild -->
+
+<!-- Built with love using Web Starter Kit -->
+</body>
+</html>

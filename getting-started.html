@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Triangles jquery plugin Documentation">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Triangles Jquery Plugin - Getting Started</title>
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="images/touch/chrome-touch-icon-192x192.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Web Starter Kit">
+    <link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+    <!-- Page styles -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <style>
+        main {
+            padding-bottom: 30px;
+        }
+
+        .navdrawer-container ul li a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        pre code.html .str {
+            color: #da2e75;
+        }
+
+        pre code.html .val {
+            color: #09829a;
+        }
+
+        pre code.html .func {
+            color: #3372df;
+        }
+
+        pre code.html .keyword {
+            color: #a938df;
+        }
+
+        pre code.html .param {
+            color: #df8227;
+        }
+
+        pre code.html .comment {
+            font-style: italic;
+            color: rgba(0, 0, 0, 0.54);
+        }
+    </style>
+</head>
+<body>
+<header class="app-bar promote-layer">
+    <div class="app-bar-container">
+        <button class="menu"><img src="images/hamburger.svg" alt="Menu"></button>
+        <h1 class="logo"><strong>Triangles Jquery Plugin</strong></h1>
+        <section class="app-bar-actions">
+            <!-- Put App Bar Buttons Here -->
+            <a href="index.html"><button><img src="images/icon.png" /></button></a>
+        </section>
+    </div>
+</header>
+
+<nav class="navdrawer-container promote-layer">
+    <h4>Navigation</h4>
+    <ul>
+        <li><a href="index.html">About</a></li>
+        <li><a href="getting-started.html" class="active">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Getting Started</h1>
+
+    <p>
+        This <a href="http://xming13.github.io/triangles/scripts/triangles.min.js">plugin</a> has dependency on <a href="https://code.jquery.com/">jQuery</a>
+        and <a href="http://keith-wood.name/svg.html">jQuery.svg</a>
+    </p>
+
+    <p>
+        You can download the js files and embed in your html or just add the following codes
+    </p>
+
+    <pre>
+    <code class="html"><span class="val">&lt;script src=</span><span class="str">"//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"</span><span class="val">&gt;&lt;/script&gt;</span>
+    <span class="val">&lt;script src=</span><span class="str">"//xming13.github.io/triangles/scripts/jquery.svg.min.js"</span><span class="val">&gt;&lt;/script&gt;</span>
+    <span class="val">&lt;script src=</span><span class="str">"//xming13.github.io/triangles/scripts/triangles.min.js"</span><span class="val">&gt;&lt;/script&gt;</span></code></pre>
+    <p>
+        Create a svg
+    </p>
+    <pre>
+    <code class="html"><span class="val">&lt;svg id=</span><span class="str">"triangles-default"</span><span class="val">&gt;&lt;/svg&gt;</span></code></pre>
+    <p>
+        Initialise triangles on the element using jquery selector after document is loaded
+    </p>
+
+    <pre>
+    <code class="html"><span class="val">&lt;script&gt;</span>
+        $(<span class="param">document</span>).ready(<span class="keyword">function</span>() {
+            $(<span class="str">'#triangles-default'</span>).triangles();
+        });
+    <span class="val">&lt;/script&gt;</span></code></pre>
+
+    <p>Refer to <a href="demo.html">Demo</a> for more configuration settings.</p>
+</main>
+
+<!-- build:js scripts/main.min.js -->
+<script src="scripts/main.min.js"></script>
+<!-- endbuild -->
+
+<!-- Built with love using Web Starter Kit -->
+</body>
+</html>
